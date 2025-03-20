@@ -6,13 +6,13 @@ using UnityEngine.UI;
 
 public class ShopSlot : MonoBehaviour
 {
-    public Item itemSO;
     [SerializeField] private WeaponStats weaponSO;
-    Image image;
-    [SerializeField] PlayerManager playerManager;
-    [SerializeField] VendingMachine vendingMachine;
+    [SerializeField] private PlayerManager playerManager;
+    [SerializeField] private VendingMachine vendingMachine;
     [SerializeField] private TextMeshProUGUI costText;
 
+    public Item itemSO;
+    private Image image;
     // Start is called before the first frame update
     void Start()
     {
@@ -26,7 +26,6 @@ public class ShopSlot : MonoBehaviour
             costText.enabled = false;
         }
     }
-
     public void SelectItem()
     {
         vendingMachine.SelectItem(this);
