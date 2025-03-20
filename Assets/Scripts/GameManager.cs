@@ -10,7 +10,11 @@ using Hashtable = ExitGames.Client.Photon.Hashtable;
 
 public enum GameState
 {
-    inGame, pause, gameOver, menu, shop
+    inGame,
+    pause,
+    gameOver,
+    menu,
+    shop
 }
 public class GameManager : MonoBehaviourPunCallbacks
 {

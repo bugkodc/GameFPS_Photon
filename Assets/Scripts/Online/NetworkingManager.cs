@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Photon.Pun;
@@ -11,26 +11,28 @@ public class NetworkingManager : MonoBehaviourPunCallbacks
 {
     [SerializeField] private MenuManager menuManager;
     [SerializeField] private GameObject lobbyPanel, mainPanel, usernamePanel,
-    usernameInput, playerFoundUI, playerFoundHolder, idRoomText;
+    usernameInput, RoomIDInput, playerFoundUI, playerFoundHolder, idRoomText , StartButton;
 
     private string userName;
     private bool onUserNameScreen;
+    private int indexPlayer;
 
     private void Update()
     {
 
         if (Input.GetKeyDown(KeyCode.Return) && onUserNameScreen)
         {
-            SubmitUserName();
+            SubmitJoinRoom();
         }
     }
     public void ExitGame()
     {
         Application.Quit();
     }
+
     public void StartOnlineGame()
     {
-        PhotonNetwork.LoadLevel("Main");
+            PhotonNetwork.LoadLevel("Main");
     }
     public void MainToUserName()
     {
@@ -51,41 +53,47 @@ public class NetworkingManager : MonoBehaviourPunCallbacks
         usernamePanel.SetActive(false);
         onUserNameScreen = false;
     }
-    public void SubmitUserName()
+    public void SubmitJoinRoom()
     {
         TMP_InputField usernameInputField = usernameInput.GetComponent<TMP_InputField>();
         usernameInputField.characterLimit = 10;
         PhotonNetwork.NickName = usernameInputField.text;
-
-        ConnectToTheServer();
-    }
-
-
-    public void ConnectToTheServer()
-    {
-        Debug.Log("Connecting to the server");
-        PhotonNetwork.ConnectUsingSettings();
-
-    }
-    public override void OnConnectedToMaster()
-    {
         PhotonNetwork.JoinLobby();
-        Debug.Log("Connecting to the lobby");
         PhotonNetwork.AutomaticallySyncScene = true;
     }
-
+    public void SubmitQuickMath()
+    {
+        TMP_InputField usernameInputField = usernameInput.GetComponent<TMP_InputField>();
+        usernameInputField.characterLimit = 10;
+        PhotonNetwork.NickName = usernameInputField.text;
+        PhotonNetwork.JoinRandomRoom();
+        PhotonNetwork.AutomaticallySyncScene = true;
+    }
     public override void OnJoinedLobby()
     {
         Debug.Log("Joined lobby");
-        PhotonNetwork.JoinRandomRoom();
+        JoinOrCreateRoom();
+    }
+    public void JoinOrCreateRoom()
+    {
+        string roomID = RoomIDInput.GetComponent<TMP_InputField>().text;
+        if (string.IsNullOrEmpty(roomID))
+        {
+            Debug.Log("Room ID cannot be empty.");
+            return;
+        }
+
+        RoomOptions roomOptions = new RoomOptions { IsVisible = true, IsOpen = true, MaxPlayers = 6 };
+        PhotonNetwork.JoinOrCreateRoom(roomID, roomOptions, TypedLobby.Default);
     }
     public override void OnJoinRandomFailed(short returnCode, string message)
     {
+        Debug.Log($"OnJoinRandomFailed: {RoomIDInput.GetComponent<TMP_InputField>().text}");
         CreateRoom();
     }
     void CreateRoom()
     {
-        int roomID = Random.Range(0, 5000);
+        string roomID = RoomIDInput.GetComponent<TMP_InputField>().text;
         RoomOptions roomOptions = new RoomOptions()
         {
             IsVisible = true,
@@ -93,7 +101,6 @@ public class NetworkingManager : MonoBehaviourPunCallbacks
             PublishUserId = true,
             MaxPlayers = 6
         };
-
         if (PhotonNetwork.CreateRoom($"Room_{roomID}", roomOptions))
             Debug.Log($"Room created with id: {roomID}");
 
@@ -106,8 +113,11 @@ public class NetworkingManager : MonoBehaviourPunCallbacks
     public override void OnJoinedRoom()
     {
         base.OnJoinedRoom();
+        // Kiểm tra nếu player hiện tại là Master Client
+        StartButton.SetActive(PhotonNetwork.IsMasterClient);
         Debug.Log("Loading game");
         OpenLobbyScreen();
+        
 
     }
     public void OpenLobbyScreen()
@@ -115,7 +125,6 @@ public class NetworkingManager : MonoBehaviourPunCallbacks
         usernamePanel.SetActive(false);
         lobbyPanel.SetActive(true);
         onUserNameScreen = false;
-
         idRoomText.GetComponent<TextMeshProUGUI>().text = PhotonNetwork.CurrentRoom.Name;
         UpdatePlayersListUI();
 
@@ -127,6 +136,13 @@ public class NetworkingManager : MonoBehaviourPunCallbacks
     public override void OnPlayerLeftRoom(Player otherPlayer)
     {
         UpdatePlayersListUI();
+    }
+    public override void OnMasterClientSwitched(Player newMasterClient)
+    {
+        Debug.Log($"Master Client switched to: {newMasterClient.NickName}");
+
+        // Kiểm tra xem player hiện tại có phải Master Client mới không
+        StartButton.SetActive(PhotonNetwork.IsMasterClient);
     }
     public override void OnPlayerEnteredRoom(Player newPlayer)
     {

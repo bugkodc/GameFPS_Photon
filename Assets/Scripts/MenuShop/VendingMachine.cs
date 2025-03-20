@@ -21,8 +21,6 @@ public class VendingMachine : MonoBehaviourPunCallbacks
     {
         eventSystem = EventSystem.current;
     }
-
-
     private void OnTriggerEnter(Collider other)
     {
         doText.SetActive(true);
@@ -32,7 +30,6 @@ public class VendingMachine : MonoBehaviourPunCallbacks
     {
         doText.SetActive(false);
     }
-
     public void OpenShop(PlayerManager playerManager)
     {
         if (hash.ContainsKey(isShopOpenKey))

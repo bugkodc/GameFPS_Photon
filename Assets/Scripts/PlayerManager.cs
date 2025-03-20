@@ -11,6 +11,7 @@ public class PlayerManager : MonoBehaviour
 {
     public static PlayerManager LocalPlayerInstance;
     [SerializeField] private TextMeshProUGUI pointsText;
+    [SerializeField] private TextMeshProUGUI namePlayer;
     public float currentHealth = 100;
 
     public float maximumHealth = 100;
@@ -54,6 +55,7 @@ public class PlayerManager : MonoBehaviour
         isAlive = true;
         currentPoints = 0;
         pointsText.text = currentPoints.ToString();
+        namePlayer.text = PhotonNetwork.NickName;
     }
 
     // Update is called once per frame
@@ -189,15 +191,6 @@ public class PlayerManager : MonoBehaviour
         if (!weaponsAvailableIndexes.Contains(indexPosition))
             weaponsAvailableIndexes.Add(indexPosition);
     }
-
-    /// <summary>
-    //Called through the shop interface when a weapon is bought
-    //Loop through all the weapons and make available the one that matches
-    //the weaponType passed by parameter
-    //Add it to available weapons
-    //Change to that weapon 
-    /// </summary>
-    /// <param name="weaponTypeToSetAvailable"></param>
     public void SetWeaponAvailable(WeaponType weaponTypeToSetAvailable)
     {
 
