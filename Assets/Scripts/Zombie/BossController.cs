@@ -1,0 +1,184 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.AI;
+using Photon.Pun;
+using Photon.Realtime;
+
+public class BossController : MonoBehaviourPunCallbacks
+{
+    public GameObject playerTarget;
+    public GameObject[] playerTargets;
+    Vector3 target;
+    float distanceToPlayer;
+    NavMeshAgent navMeshAgent;
+
+    ZombieManager zombieManager;
+    public GameManager gameManager;
+
+    //Animations
+    [SerializeField]
+    Animator animator;
+    string isRunningBool = "isRunning", runningSpeed = "velocity",
+    isAttackingTrigger = "isAttacking";
+
+
+
+    [SerializeField] float rangeToMove = 16;
+
+    //Stats
+    [SerializeField]
+    float attackDamage = 20;
+
+    [SerializeField]
+    float minMovementSpeed = 2, maxMovementSpeed = 4;
+
+    [SerializeField]
+    float minAttackSpeed = 2, maxAttackSpeed = 4;
+    float attackSpeed;
+
+    //Equals to the stopping distance of the nav mesh agent
+    float rangeToAttack;
+
+    float counterAttack;
+    bool isInRangeToMove, isInRangeToAttack, isAlive;
+
+
+    float maxSpeed;
+    NavMeshPath path;
+    [SerializeField] float armLength = 1.5f;
+
+    public GameObject[] spawnEnemy;
+    // Start is called before the first frame update
+    void Start()
+    {
+        zombieManager = gameObject.GetComponent<ZombieManager>();
+        if (PhotonNetwork.InRoom)
+            playerTargets = GameObject.FindGameObjectsWithTag("Player");
+        else
+            playerTarget = GameObject.FindGameObjectWithTag("Player");
+
+        navMeshAgent = GetComponent<NavMeshAgent>();
+        navMeshAgent.speed = Random.Range(minMovementSpeed, maxMovementSpeed);
+        maxSpeed = navMeshAgent.speed;
+        path = new NavMeshPath();
+
+        rangeToAttack = navMeshAgent.stoppingDistance + 0.1f;
+        attackSpeed = Random.Range(minAttackSpeed, maxAttackSpeed);
+    }
+
+    // Update is called once per frame
+    void Update()
+    {
+        //If we are online we check which player is the closest to the zombie
+        if (PhotonNetwork.InRoom)
+        {
+            float minDistanceToPlayer = float.MaxValue;
+            foreach (GameObject player in playerTargets)
+            {
+                if (player != null)
+                {
+                    float distance = Vector3.Distance(transform.position, player.transform.position);
+                    if (distance < minDistanceToPlayer)
+                    {
+                        minDistanceToPlayer = distance;
+                        playerTarget = player;
+                    }
+                }
+            }
+        }
+        //In order to move the enemy even when the player is jumping, we set the target vector y to 0.
+        target = new Vector3(playerTarget.transform.position.x, 0, playerTarget.transform.position.z);
+
+        distanceToPlayer = Vector3.Distance(transform.position, target);
+        isInRangeToMove = (distanceToPlayer < rangeToMove);
+        isInRangeToAttack = distanceToPlayer <= rangeToAttack;
+        isAlive = zombieManager.isAlive;
+
+        Movement();
+        Attack();
+
+        counterAttack += Time.deltaTime;
+    }
+
+    void Movement()
+    {
+
+        //Sets the speed of the animation to the zombie speed
+        animator.SetFloat(runningSpeed, navMeshAgent.velocity.magnitude / maxSpeed);
+
+        //Checks if the player is in a reachable place
+        navMeshAgent.CalculatePath(target, path);
+
+        //move to the player direction if the player is in a reachable place,
+        //the distance to the player is bigger than the attack range and lower than the moveRange,
+        //and the zombie is not dead.
+        int ramdomSpawnEnemy = Random.Range(0, 5);
+        if (ramdomSpawnEnemy == 0)
+        {
+            animator.SetBool(isRunningBool, false);
+            int ramdomNumberEnemy = Random.Range(3, 8);
+            SpawnEnemy(ramdomNumberEnemy);
+        }
+        else
+        {
+            if (isInRangeToMove && path.status == NavMeshPathStatus.PathComplete &&
+            !isInRangeToAttack && isAlive)
+            {
+                animator.SetBool(isRunningBool, true);
+                navMeshAgent.SetDestination(target);
+            }
+            else
+            {
+                animator.SetBool(isRunningBool, false);
+                navMeshAgent.SetDestination(transform.position);
+            }
+        }
+    }
+    void Attack()
+    {
+        if (isInRangeToAttack && isAlive)
+        {
+            //If is in range to attack we need to manually rotate our enemy to face the player
+            FaceTarget();
+
+            if (counterAttack >= attackSpeed)
+            {
+                animator.SetTrigger(isAttackingTrigger);
+                counterAttack = 0;
+                //The damage is made by an event in the animation which calls MakeDamage
+            }
+        }
+    }
+    void SpawnEnemy(int numberSpawnEnenmy)
+    {
+        for(int i = 0; i < numberSpawnEnenmy; i++)
+        {
+            int ramdomspawn = Random.Range(0, spawnEnemy.Length);
+            gameManager.InstantiateZombieEnenmy(PhotonNetwork.InRoom, ramdomspawn, spawnEnemy);
+        }
+    }
+    void FaceTarget()
+    {
+        Vector3 lookDirection = (target - transform.position).normalized;
+        Quaternion lookRotation = Quaternion.LookRotation(new Vector3(lookDirection.x, 0f, lookDirection.z));
+        transform.rotation = Quaternion.Slerp(this.transform.rotation, lookRotation, Time.deltaTime * 5f);
+    }
+
+    //It's called when the zombie stretches his arm to attack
+    public void MakeDamage()
+    {
+        if (distanceToPlayer <= rangeToAttack + armLength)
+        {
+            if (PhotonNetwork.InRoom)
+                playerTarget.GetComponent<PlayerManager>().photonView.RPC("TakeDamage", RpcTarget.All,
+                attackDamage);
+            else
+                playerTarget.GetComponent<PlayerManager>().TakeDamage(attackDamage);
+        }
+    }
+    public override void OnPlayerLeftRoom(Player otherPlayer)
+    {
+        playerTargets = GameObject.FindGameObjectsWithTag("Player");
+    }
+}

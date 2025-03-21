@@ -8,11 +8,20 @@ public class AnimationEventReceive : MonoBehaviour
     [SerializeField] GameObject sniperGO;
     [SerializeField] Camera playerCamera;
     public ZombieController zombieController;
+    public BossController bossController;
+    public bool isZoombie;
 
     //Called when the animation of the zombie makes him stretch his arm to attack
     public void MakeDamage()
     {
-        zombieController.MakeDamage();
+        if (isZoombie)
+        {
+            zombieController.MakeDamage();
+        }
+        else
+        {
+            bossController.MakeDamage();
+        }
     }
     public void ScopeOverlay()
     {
