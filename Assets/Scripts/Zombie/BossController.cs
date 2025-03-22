@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
@@ -47,11 +47,15 @@ public class BossController : MonoBehaviourPunCallbacks
     float maxSpeed;
     NavMeshPath path;
     [SerializeField] float armLength = 1.5f;
-
+    int _randomNumberSpawn;
+    int _randomNumberHealth;
     public GameObject[] spawnEnemy;
+    bool isSpawn = false;
+    public ParticleSystem VFXHealth;
     // Start is called before the first frame update
     void Start()
     {
+        VFXHealth.Stop();
         zombieManager = gameObject.GetComponent<ZombieManager>();
         if (PhotonNetwork.InRoom)
             playerTargets = GameObject.FindGameObjectsWithTag("Player");
@@ -65,6 +69,8 @@ public class BossController : MonoBehaviourPunCallbacks
 
         rangeToAttack = navMeshAgent.stoppingDistance + 0.1f;
         attackSpeed = Random.Range(minAttackSpeed, maxAttackSpeed);
+        _randomNumberSpawn = Random.Range(1, 10);
+        Invoke("SpawnEnemy", _randomNumberSpawn);
     }
 
     // Update is called once per frame
@@ -94,8 +100,11 @@ public class BossController : MonoBehaviourPunCallbacks
         isInRangeToMove = (distanceToPlayer < rangeToMove);
         isInRangeToAttack = distanceToPlayer <= rangeToAttack;
         isAlive = zombieManager.isAlive;
-
-        Movement();
+        if (isSpawn == false)
+        {
+            Movement();
+        }
+        
         Attack();
 
         counterAttack += Time.deltaTime;
@@ -113,15 +122,6 @@ public class BossController : MonoBehaviourPunCallbacks
         //move to the player direction if the player is in a reachable place,
         //the distance to the player is bigger than the attack range and lower than the moveRange,
         //and the zombie is not dead.
-        int ramdomSpawnEnemy = Random.Range(0, 5);
-        if (ramdomSpawnEnemy == 0)
-        {
-            animator.SetBool(isRunningBool, false);
-            int ramdomNumberEnemy = Random.Range(3, 8);
-            SpawnEnemy(ramdomNumberEnemy);
-        }
-        else
-        {
             if (isInRangeToMove && path.status == NavMeshPathStatus.PathComplete &&
             !isInRangeToAttack && isAlive)
             {
@@ -133,8 +133,7 @@ public class BossController : MonoBehaviourPunCallbacks
                 animator.SetBool(isRunningBool, false);
                 navMeshAgent.SetDestination(transform.position);
             }
-        }
-    }
+        }    
     void Attack()
     {
         if (isInRangeToAttack && isAlive)
@@ -150,13 +149,43 @@ public class BossController : MonoBehaviourPunCallbacks
             }
         }
     }
-    void SpawnEnemy(int numberSpawnEnenmy)
+    void SpawnEnemy()
     {
-        for(int i = 0; i < numberSpawnEnenmy; i++)
+        int NumberSpawn = Random.Range(2, 5);
+        for(int i = 0; i < NumberSpawn; i++)
         {
             int ramdomspawn = Random.Range(0, spawnEnemy.Length);
-            gameManager.InstantiateZombieEnenmy(PhotonNetwork.InRoom, ramdomspawn, spawnEnemy);
+            spawnEnemy[ramdomspawn].SetActive(true);
+            zombieManager.gameManager.InstantiateZombieEnenmy(PhotonNetwork.InRoom, ramdomspawn, spawnEnemy);
+            
         }
+        StartCoroutine(WaitSpawn());
+    }
+    IEnumerator WaitSpawn()
+    {
+        isSpawn = true;
+        _randomNumberHealth = Random.Range(0, 10);
+        if(_randomNumberHealth > 7)
+        {
+            zombieManager.AddHealth(zombieManager.maxHealth / 5);
+            StartCoroutine(WaitHeat());
+        }
+        animator.SetBool(isRunningBool, false);
+        navMeshAgent.SetDestination(transform.position);
+        yield return new WaitForSeconds(_randomNumberSpawn);
+        foreach(GameObject spawnPoint in spawnEnemy)
+        {
+            spawnPoint.SetActive(false);
+        }
+        isSpawn = false;
+        _randomNumberSpawn = Random.Range(1, 10);
+        Invoke("SpawnEnemy", _randomNumberSpawn);
+    }
+    IEnumerator WaitHeat()
+    {
+        VFXHealth.Play();
+        yield return new WaitForSeconds(3f);
+        VFXHealth.Stop();
     }
     void FaceTarget()
     {

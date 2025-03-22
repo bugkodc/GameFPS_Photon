@@ -92,7 +92,14 @@ public class ZombieManager : MonoBehaviour
             Die();
 
     }
-
+    [PunRPC]
+    public void AddHealth(float Health)
+    {
+        currentHealth += Health;
+        if(currentHealth > maxHealth) 
+            currentHealth = maxHealth;
+        HPSlider.value = (float)currentHealth / (float)maxHealth;
+    }
     void Die()
     {
         isAlive = false;

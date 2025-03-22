@@ -35,7 +35,7 @@ public class GameManager : MonoBehaviourPunCallbacks
     //Depending on whitch platform we are on, we load one or other scene.
     [SerializeField] string menuScene, mainScene;
     [SerializeField] GameObject pausePanel;
-
+    [SerializeField] GameObject erorBoss;
     //Black panel used for fade in when the game starts
     [SerializeField] GameObject fadeInGamePanel;
     GameState currentLocalGameState;
@@ -113,6 +113,7 @@ public class GameManager : MonoBehaviourPunCallbacks
         yield return new WaitForSeconds(2);
         if (currentRound % 5 == 0)
         {
+            StartCoroutine(ShowEror());
             numberSpawnBoss++;
             int randomSpawnIndex = Random.Range(0, spawnersBoss.Length);
             Debug.Log(randomSpawnIndex + " RandomSpawnIndex " + spawnersBoss.Length);
@@ -139,7 +140,13 @@ public class GameManager : MonoBehaviourPunCallbacks
             }
         }
     }
+    IEnumerator ShowEror()
+    {
+        erorBoss.SetActive(true);
+        yield return new WaitForSeconds(3f);
+        erorBoss.SetActive(false);
 
+    }
     public void InstantiateZombie(bool isOnline, int spawnIndex)
     {
         if (isOnline)
@@ -192,7 +199,7 @@ public class GameManager : MonoBehaviourPunCallbacks
             if (onlineEnemy != null)
                 onlineEnemy.GetComponent<ZombieManager>().gameManager = this;
             onlineEnemy.GetComponent<ZombieManager>().maxHealth = 1000 * numberSpawnBoss;
-            onlineEnemy.GetComponent<BossController>().gameManager = this;
+            
         }
         else
         {
