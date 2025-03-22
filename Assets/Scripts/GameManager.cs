@@ -20,6 +20,7 @@ public class GameManager : MonoBehaviourPunCallbacks
 {
     [SerializeField] int maxFrames = 90;
     [SerializeField] GameObject[] spawners;
+    [SerializeField] GameObject[] spawnersBoss;
     int currentRound;
 
     [SerializeField] TextMeshProUGUI roundText;
@@ -34,7 +35,7 @@ public class GameManager : MonoBehaviourPunCallbacks
     //Depending on whitch platform we are on, we load one or other scene.
     [SerializeField] string menuScene, mainScene;
     [SerializeField] GameObject pausePanel;
-
+    [SerializeField] GameObject erorBoss;
     //Black panel used for fade in when the game starts
     [SerializeField] GameObject fadeInGamePanel;
     GameState currentLocalGameState;
@@ -44,12 +45,14 @@ public class GameManager : MonoBehaviourPunCallbacks
 
     [SerializeField] PhotonView _photonView;
     bool isOnlineMasterAndMine;
+    int numberSpawnBoss = 0;
     // Start is called before the first frame update
     void Start()
     {
         QualitySettings.vSyncCount = 0;
         Application.targetFrameRate = maxFrames;
         spawners = GameObject.FindGameObjectsWithTag("Spawner");
+        spawnersBoss = GameObject.FindGameObjectsWithTag("SpawnerBoss");
         StartGame();
     }
     void StartGame()
@@ -108,21 +111,42 @@ public class GameManager : MonoBehaviourPunCallbacks
         else
             SetRound(currentRound + 1);
         yield return new WaitForSeconds(2);
-
-        for (int i = 0; i < currentRound; i++)
+        if (currentRound % 5 == 0)
         {
-            Debug.Log("i = " + i);
-            int randomSpawnIndex = Random.Range(0, spawners.Length);
-            Debug.Log(randomSpawnIndex + " RandomSpawnIndex " + spawners.Length);
+            StartCoroutine(ShowEror());
+            numberSpawnBoss++;
+            int randomSpawnIndex = Random.Range(0, spawnersBoss.Length);
+            Debug.Log(randomSpawnIndex + " RandomSpawnIndex " + spawnersBoss.Length);
 
             //Photon network instantiation or normal one
             if (PhotonNetwork.InRoom)
-                InstantiateZombie(true, randomSpawnIndex);
+                InstantiateZombieBoss(true, randomSpawnIndex);
             else
-                InstantiateZombie(false, randomSpawnIndex);
+                InstantiateZombieBoss(false, randomSpawnIndex);
+        }
+        else
+        {
+            for (int i = 0; i < currentRound; i++)
+            {
+                Debug.Log("i = " + i);
+                int randomSpawnIndex = Random.Range(0, spawners.Length);
+                Debug.Log(randomSpawnIndex + " RandomSpawnIndex " + spawners.Length);
+
+                //Photon network instantiation or normal one
+                if (PhotonNetwork.InRoom)
+                    InstantiateZombie(true, randomSpawnIndex);
+                else
+                    InstantiateZombie(false, randomSpawnIndex);
+            }
         }
     }
+    IEnumerator ShowEror()
+    {
+        erorBoss.SetActive(true);
+        yield return new WaitForSeconds(3f);
+        erorBoss.SetActive(false);
 
+    }
     public void InstantiateZombie(bool isOnline, int spawnIndex)
     {
         if (isOnline)
@@ -141,6 +165,50 @@ public class GameManager : MonoBehaviourPunCallbacks
             Quaternion.identity) as GameObject;
             if (enemy != null)
                 enemy.GetComponent<ZombieManager>().gameManager = this;
+        }
+    }
+    public void InstantiateZombieEnenmy(bool isOnline, int spawnIndex , GameObject[] spawners)
+    {
+        if (isOnline)
+        {
+            //Instantiate a zombie in photon network
+            //Add this game manager to the zombie
+            GameObject onlineEnemy = PhotonNetwork.Instantiate("Zombie", spawners[spawnIndex].transform.position,
+            Quaternion.identity);
+            if (onlineEnemy != null)
+                onlineEnemy.GetComponent<ZombieManager>().gameManager = this;
+        }
+        else
+        {
+            //Normal instantiation of the zombie if we are not online
+            GameObject enemy = Instantiate(Resources.Load("Zombie"), spawners[spawnIndex].transform.position,
+            Quaternion.identity) as GameObject;
+            if (enemy != null)
+                enemy.GetComponent<ZombieManager>().gameManager = this;
+        }
+    }
+    public void InstantiateZombieBoss(bool isOnline, int spawnIndex)
+    {
+        if (isOnline)
+        {
+            //Instantiate a zombie in photon network
+            //Add this game manager to the zombie
+            GameObject onlineEnemy = PhotonNetwork.Instantiate("Boss", spawnersBoss[spawnIndex].transform.position,
+           
+            Quaternion.identity);
+            if (onlineEnemy != null)
+                onlineEnemy.GetComponent<ZombieManager>().gameManager = this;
+            onlineEnemy.GetComponent<ZombieManager>().maxHealth = 1000 * numberSpawnBoss;
+            
+        }
+        else
+        {
+            //Normal instantiation of the zombie if we are not online
+            GameObject enemy = Instantiate(Resources.Load("Boss"), spawnersBoss[spawnIndex].transform.position,
+            Quaternion.identity) as GameObject;
+            if (enemy != null)
+                enemy.GetComponent<ZombieManager>().gameManager = this;
+            enemy.GetComponent<ZombieManager>().maxHealth = 1000 * numberSpawnBoss;
         }
     }
 
