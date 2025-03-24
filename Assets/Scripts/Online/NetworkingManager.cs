@@ -32,7 +32,7 @@ public class NetworkingManager : MonoBehaviourPunCallbacks
 
     public void StartOnlineGame()
     {
-            PhotonNetwork.LoadLevel("Main");
+        PhotonNetwork.LoadLevel("Main");
     }
     public void MainToUserName()
     {

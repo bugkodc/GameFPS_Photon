@@ -85,7 +85,9 @@ public class WeaponController : MonoBehaviour
 
     //AudioClips
 
-
+    public bool isMobile;
+    public GameObject weapon;
+    bool isAim = false;
     public void SetIndexPosition()
     {
         indexPosition = ((int)weaponSO.weaponType);
@@ -131,25 +133,25 @@ public class WeaponController : MonoBehaviour
 
             //Reload when our current ammo is 0.
             if ((currentAmmo <= 0 && !isReloading && currentReserveAmmo > 0) ||
-            (currentAmmo < weaponSO.maxAmmo && !isReloading && Input.GetButtonDown(reloadButton)))
+            (currentAmmo < weaponSO.maxAmmo && !isReloading && Input.GetButtonDown(reloadButton) && isMobile == false))
             {
                 StartCoroutine(Reload());
                 return;
             }
 
             //If we are not reloading we can shoot or aim
-            if (!isReloading)
+            if (!isReloading && isMobile == false)
             {
                 //Called on update to check if we are hitting the Aim button, if so, change to aim mode.
                 AimSystem();
 
                 //Check if the fire rate of the weapon allows us to shoot. If the weapon is automatic we can let 
                 //the button pressed to shoot over and over.
-                if (Input.GetButton(fire1) && Time.time >= nextShootTime && weaponSO.isAutomatic && currentAmmo > 0)
+                if (Input.GetButton(fire1) && Time.time >= nextShootTime && weaponSO.isAutomatic && currentAmmo > 0 && isMobile == false)
                 {
                     Shoot();
                 }
-                if (Input.GetButtonDown(fire1) && Time.time >= nextShootTime && !weaponSO.isAutomatic && currentAmmo > 0)
+                if (Input.GetButtonDown(fire1) && Time.time >= nextShootTime && !weaponSO.isAutomatic && currentAmmo > 0 && isMobile == false)
                 {
                     Shoot();
                 }
@@ -158,7 +160,29 @@ public class WeaponController : MonoBehaviour
         }
     }
 
-
+    public void ShootMobi()
+    {
+        if (isMobile && Time.time >= nextShootTime && weaponSO.isAutomatic && currentAmmo > 0)
+        {
+            Shoot();
+        }
+        if (isMobile && Time.time >= nextShootTime && !weaponSO.isAutomatic && currentAmmo > 0 )
+        {
+            Shoot();
+        }
+    }
+    public void ReloadMobi()
+    {
+        if (weapon.activeSelf == true)
+        {
+            if ((currentAmmo <= 0 && !isReloading && currentReserveAmmo > 0) ||
+                (currentAmmo < weaponSO.maxAmmo && !isReloading && isMobile))
+            {
+                StartCoroutine(Reload());
+                return;
+            }
+        }
+    }
     void Shoot()
     {
         ZombieManager enemyManager = null;
@@ -313,7 +337,22 @@ public class WeaponController : MonoBehaviour
             SetAimMode(false);
 
     }
-
+    public void AimSystemMobi()
+    {
+        if (weapon.activeSelf == true)
+        {
+            if (isAim)
+            {
+                SetAimMode(true);
+                isAim = false;
+            }
+            else
+            {
+                SetAimMode(false);
+                isAim = true;
+            }
+        }
+    }
     /// <summary>
     /// Set needed parameters to consider when changing the aim mode
     /// </summary>
@@ -347,26 +386,26 @@ public class WeaponController : MonoBehaviour
 
     IEnumerator Reload()
     {
-        //Unable the aim cross
-        aimCross.enabled = false;
+        //Unable the aim cross  
+            aimCross.enabled = false;
 
-        if (weaponSO.weaponType == WeaponType.sniper)
-        {
-            StopScoping();
-        }
-        isReloading = true;
-        animator.SetBool(animationReload, true);
+            if (weaponSO.weaponType == WeaponType.sniper)
+            {
+                StopScoping();
+            }
+            isReloading = true;
+            animator.SetBool(animationReload, true);
 
-        //If we are scoping with the sniper, stop scoping
+            //If we are scoping with the sniper, stop scoping
 
-        PlayRechargeSounds();
-        //The time to wait for recharge of the shotgun depends on how many bullets
-        //we have left. The EndReload call is made when we finish playing the recharge sounds
-        if (weaponSO.weaponType != WeaponType.shotgun)
-        {
-            yield return new WaitForSeconds(weaponSO.reloadTime);
-            EndReload();
-        }
+            PlayRechargeSounds();
+            //The time to wait for recharge of the shotgun depends on how many bullets
+            //we have left. The EndReload call is made when we finish playing the recharge sounds
+            if (weaponSO.weaponType != WeaponType.shotgun)
+            {
+                yield return new WaitForSeconds(weaponSO.reloadTime);
+                EndReload();
+            }
     }
 
     /// <summary>

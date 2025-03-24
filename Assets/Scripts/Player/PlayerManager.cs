@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -110,10 +110,33 @@ public class PlayerManager : MonoBehaviour
         if (isAlive)
         {
             isAlive = false;
-            gameManager.GameOver();
+            gameObject.SetActive(false); // Ẩn nhân vật thay vì hủy
+
+            // Kiểm tra xem còn player nào sống không
+            PlayerManager[] players = FindObjectsOfType<PlayerManager>();
+            bool hasAlivePlayer = false;
+
+            foreach (PlayerManager player in players)
+            {
+                if (player.isAlive)
+                {
+                    hasAlivePlayer = true;
+                    break;
+                }
+            }
+
+            if (!hasAlivePlayer)
+            {
+                // Gửi RPC để tất cả Client đều gọi GameOver
+                photonView.RPC("GameOverRPC", RpcTarget.All);
+            }
         }
     }
-
+    [PunRPC]
+    void GameOverRPC()
+    {
+        gameManager.GameOver();
+    }
     public void UpdatePoints(int pointsUpd)
     {
         currentPoints += pointsUpd;
