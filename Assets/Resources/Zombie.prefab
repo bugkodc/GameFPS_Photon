@@ -744,6 +744,7 @@ MonoBehaviour:
   maxHealth: 50
   isAlive: 0
   HPSlider: {fileID: 3372334259917919351}
+  isZoombie: 1
   growlClips:
   - {fileID: 8300000, guid: 4c285a791c630e7478685ebcf5a3cc19, type: 3}
   - {fileID: 8300000, guid: 110d2c2db57f0794e8521485d7c53f36, type: 3}
@@ -2075,6 +2076,8 @@ MonoBehaviour:
   sniperGO: {fileID: 0}
   playerCamera: {fileID: 0}
   zombieController: {fileID: 8014705921333968434}
+  bossController: {fileID: 0}
+  isZoombie: 1
 --- !u!114 &7854405233393590975
 MonoBehaviour:
   m_ObjectHideFlags: 0

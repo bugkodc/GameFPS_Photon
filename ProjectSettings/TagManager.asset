@@ -11,6 +11,7 @@ TagManager:
   - VendingMachine
   - Weapon
   - Headshot
+  - SpawnerBoss
   layers:
   - Default
   - TransparentFX

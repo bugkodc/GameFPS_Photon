@@ -9,12 +9,13 @@ public class ZombieManager : MonoBehaviour
 {
 
     public float currentHealth;
-    [SerializeField] float maxHealth;
+    [SerializeField] public float maxHealth;
     Collider _collider;
     public bool isAlive;
     [SerializeField] Slider HPSlider;
     ZombieController zombieController;
-
+    BossController bossController;
+    public bool isZoombie;
     [SerializeField] AudioClip[] growlClips;
     AudioSource audioSource;
     float CDGrowlTime = 2;
@@ -28,7 +29,14 @@ public class ZombieManager : MonoBehaviour
     string dieAnimationTrigger = "isDead";
     void Start()
     {
-        zombieController = GetComponent<ZombieController>();
+        if (isZoombie)
+        {
+            zombieController = GetComponent<ZombieController>();
+        }
+        else
+        {
+            bossController = GetComponent<BossController>();
+        }
         currentHealth = maxHealth;
         isAlive = true;
         HPSlider.value = currentHealth / maxHealth;
@@ -57,7 +65,14 @@ public class ZombieManager : MonoBehaviour
     }
     void GrowlAndRotateZombie()
     {
-        HPSlider.transform.LookAt(zombieController.playerTarget.transform);
+        if (isZoombie)
+        {
+            HPSlider.transform.LookAt(zombieController.playerTarget.transform);
+        }
+        else
+        {
+            HPSlider.transform.LookAt(bossController.playerTarget.transform);
+        }
 
         if (counter >= CDGrowlTime && !audioSource.isPlaying && isAlive)
         {
@@ -77,7 +92,14 @@ public class ZombieManager : MonoBehaviour
             Die();
 
     }
-
+    [PunRPC]
+    public void AddHealth(float Health)
+    {
+        currentHealth += Health;
+        if(currentHealth > maxHealth) 
+            currentHealth = maxHealth;
+        HPSlider.value = (float)currentHealth / (float)maxHealth;
+    }
     void Die()
     {
         isAlive = false;
