@@ -78,19 +78,22 @@ public class GameManager : MonoBehaviourPunCallbacks
         }
         if (Input.GetButtonDown("Pause"))
         {
-            switch (currentLocalGameState)
-            {
-                case GameState.pause:
-                    Resume(); break;
-                case GameState.inGame:
-                    Pause(); break;
-                case GameState.shop:
-                    vendingMachine.ExitShop(); break;
-            }
+            BackGame();
 
         }
     }
-
+    public void BackGame()
+    {
+        switch (currentLocalGameState)
+        {
+            case GameState.pause:
+                Resume(); break;
+            case GameState.inGame:
+                Pause(); break;
+            case GameState.shop:
+                vendingMachine.ExitShop(); break;
+        }
+    }
     void SetRound(int round)
     {
         currentRound = round;
@@ -291,7 +294,7 @@ public class GameManager : MonoBehaviourPunCallbacks
         {
             Time.timeScale = 1;
         }
-        PhotonNetwork.Disconnect();
+        PhotonNetwork.LeaveRoom();
         currentLocalGameState = GameState.menu;
         SceneManager.LoadScene(menuScene);
     }

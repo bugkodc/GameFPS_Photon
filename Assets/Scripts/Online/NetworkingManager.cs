@@ -44,7 +44,7 @@ public class NetworkingManager : MonoBehaviourPunCallbacks
     {
         mainPanel.SetActive(true);
         lobbyPanel.SetActive(false);
-        PhotonNetwork.Disconnect();
+        PhotonNetwork.LeaveRoom();
         onUserNameScreen = false;
     }
     public void UserNameToMain()
