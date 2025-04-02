@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -46,6 +46,7 @@ public class GameManager : MonoBehaviourPunCallbacks
     [SerializeField] PhotonView _photonView;
     bool isOnlineMasterAndMine;
     int numberSpawnBoss = 0;
+    private bool isLeavingRoom = false;
     // Start is called before the first frame update
     void Start()
     {
@@ -299,6 +300,8 @@ public class GameManager : MonoBehaviourPunCallbacks
         SceneManager.LoadScene(menuScene);
     }
 
+
+
     void Pause()
     {
         Cursor.lockState = CursorLockMode.None;
@@ -342,8 +345,25 @@ public class GameManager : MonoBehaviourPunCallbacks
     }
     public override void OnPlayerLeftRoom(Player otherPlayer)
     {
-        if (otherPlayer.IsLocal)
-            photonView.RPC("DestroyPlayerGO", RpcTarget.All);
+        if (otherPlayer.IsLocal) // Chỉ xử lý nếu chính mình rời phòng
+        {
+            if (PhotonNetwork.CurrentRoom.PlayerCount > 1) // Nếu vẫn còn người chơi khác
+            {
+                GameObject playerObject = GameObject.FindWithTag("Player"); // Tìm Player Object
+                if (playerObject != null)
+                {
+                    PhotonView playerPhotonView = playerObject.GetComponent<PhotonView>();
+                    if (playerPhotonView != null && playerPhotonView.IsMine)
+                    {
+                        PhotonNetwork.Destroy(playerObject); // Chỉ xóa Player nếu còn người khác trong phòng
+                    }
+                }
+            }
+            else
+            {
+                Debug.Log("Phòng trống, chỉ rời phòng mà không xóa Player.");
+            }
+        }
     }
 
 

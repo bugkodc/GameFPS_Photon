@@ -1394,7 +1394,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 1}
   m_AnchorMax: {x: 0.5, y: 1}
-  m_AnchoredPosition: {x: -721.3, y: -120.1}
+  m_AnchoredPosition: {x: -721.3, y: -120.100006}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 1}
 --- !u!222 &4744183344433709421
@@ -1445,7 +1445,7 @@ MonoBehaviour:
     m_SelectedTrigger: Selected
     m_DisabledTrigger: Disabled
   m_Interactable: 1
-  m_TargetGraphic: {fileID: 0}
+  m_TargetGraphic: {fileID: 6873628152646157198}
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
@@ -5575,7 +5575,7 @@ MonoBehaviour:
     m_SelectedTrigger: Selected
     m_DisabledTrigger: Disabled
   m_Interactable: 1
-  m_TargetGraphic: {fileID: 0}
+  m_TargetGraphic: {fileID: 255067166316523258}
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
@@ -5628,7 +5628,6 @@ GameObject:
   m_Component:
   - component: {fileID: 7502189028220253496}
   - component: {fileID: 1753698231377220681}
-  - component: {fileID: 4381452422145935933}
   - component: {fileID: 1365765190095842442}
   - component: {fileID: 7216361210430022378}
   - component: {fileID: 186724242391161991}
@@ -5673,23 +5672,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   playerTransform: {fileID: 6835297398406708624}
-  gameManager: {fileID: 4338560955155590290}
-  photonView: {fileID: 2619255381216889689}
-  _camera: {fileID: 1922316889535836618}
---- !u!114 &4381452422145935933
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7158174193473220482}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0a3b466b27149cb4bb3717c00460bde5, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  playerTransform: {fileID: 6835297398406708624}
-  mouseSensitivity: 100
   gameManager: {fileID: 4338560955155590290}
   photonView: {fileID: 2619255381216889689}
   _camera: {fileID: 1922316889535836618}
