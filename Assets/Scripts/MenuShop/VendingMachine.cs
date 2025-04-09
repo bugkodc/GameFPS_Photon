@@ -46,6 +46,10 @@ public class VendingMachine : MonoBehaviourPunCallbacks
         shopCanvas.SetActive(true);
         eventSystem.SetSelectedGameObject(firstSelectedButton);
         gameManager.Shop();
+        if (gameManager.isMobi)
+        {
+            _playerManager.canvasParrent.SetActive(false);
+        }
     }
 
     public void ExitShop()
@@ -61,6 +65,10 @@ public class VendingMachine : MonoBehaviourPunCallbacks
         Debug.Log("Close shop");
         shopCanvas.SetActive(false);
         gameManager.Resume();
+        if (gameManager.isMobi)
+        {
+            _playerManager.canvasParrent.SetActive(true);
+        }
     }
 
     public void SelectItem(ShopSlot shopSlot)
