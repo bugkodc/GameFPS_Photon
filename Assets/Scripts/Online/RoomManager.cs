@@ -38,12 +38,12 @@ public class RoomManager : MonoBehaviourPunCallbacks
 
     void InstantiatePlayer(Scene scene, LoadSceneMode loadSceneMode)
     {
-        if (!PhotonNetwork.IsConnectedAndReady) return;
+        //if (!PhotonNetwork.IsConnectedAndReady) return;
 
         Vector3 playerSpawnPosition = new Vector3(Random.Range(-3, 3), 2, Random.Range(-3, 3));
 
         // Chỉ spawn nhân vật cho chính client này
-        if (PhotonNetwork.LocalPlayer.IsLocal)
+        if (PhotonNetwork.LocalPlayer.IsLocal && PhotonNetwork.InRoom)
         {
             if (isMobi)
             {

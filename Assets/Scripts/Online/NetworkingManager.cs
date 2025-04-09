@@ -17,13 +17,38 @@ public class NetworkingManager : MonoBehaviourPunCallbacks
     private bool onUserNameScreen;
     private int indexPlayer;
 
-    private void Update()
+    void Start()
     {
-
-        if (Input.GetKeyDown(KeyCode.Return) && onUserNameScreen)
+        // Nếu Photon đang ở trạng thái Leaving hoặc chưa kết nối, thực hiện reconnect.
+        if (PhotonNetwork.NetworkClientState == ClientState.Leaving || !PhotonNetwork.IsConnected)
         {
-            SubmitJoinRoom();
+            Debug.Log("Photon đang trong trạng thái Leaving hoặc chưa kết nối, bắt đầu quá trình reconnect...");
+            PhotonNetwork.Disconnect();
+            StartCoroutine(Reconnect());
         }
+    }
+
+    IEnumerator Reconnect()
+    {
+        // Chờ cho đến khi Photon hoàn toàn disconnect
+        while (PhotonNetwork.IsConnected)
+        {
+            yield return null;
+        }
+        Debug.Log("Đang kết nối lại với Photon...");
+        PhotonNetwork.ConnectUsingSettings();
+        yield return null;
+    }
+
+    public override void OnConnectedToMaster()
+    {
+        Debug.Log("Đã kết nối lại thành công với Master Server.");
+        // Tại đây, bạn có thể cập nhật UI Menu, cho phép người chơi tạo phòng hoặc join phòng mới
+    }
+
+    public override void OnDisconnected(DisconnectCause cause)
+    {
+        Debug.Log("Đã ngắt kết nối, cause: " + cause.ToString());
     }
     public void ExitGame()
     {
