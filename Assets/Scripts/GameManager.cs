@@ -18,39 +18,32 @@ public enum GameState
 }
 public class GameManager : MonoBehaviourPunCallbacks
 {
-    [SerializeField] int maxFrames = 90;
-    [SerializeField] GameObject[] spawners;
-    [SerializeField] GameObject[] spawnersBoss;
-    int currentRound;
-
-    [SerializeField] TextMeshProUGUI roundText;
-    [SerializeField] TextMeshProUGUI roundsSurvivedText;
-
-    string stringRoundText;
-
-    [SerializeField] GameObject zombiePrefab;
-
-    [SerializeField] GameObject gameOverPanel;
-
+    [SerializeField] private int maxFrames = 90;
+    [SerializeField] private GameObject[] spawners;
+    [SerializeField] private GameObject[] spawnersBoss;
+    [SerializeField] private TextMeshProUGUI roundText;
+    [SerializeField] private TextMeshProUGUI roundsSurvivedText;
+    [SerializeField] private GameObject zombiePrefab;
+    [SerializeField] private GameObject gameOverPanel;
     //Depending on whitch platform we are on, we load one or other scene.
-    [SerializeField] string menuScene, mainScene;
-    [SerializeField] GameObject pausePanel;
-    [SerializeField] GameObject erorBoss;
+    [SerializeField] private string menuScene, mainScene;
+    [SerializeField] private GameObject pausePanel;
+    [SerializeField] private GameObject erorBoss;
     //Black panel used for fade in when the game starts
-    [SerializeField] GameObject fadeInGamePanel;
-    GameState currentLocalGameState;
+    [SerializeField] private GameObject fadeInGamePanel;
+    [SerializeField] private PhotonView _photonView;
+
+    [HideInInspector] public VendingMachine vendingMachine;
+    private GameState currentLocalGameState;
     public GameState CurrentLocalGameState { get => currentLocalGameState; }
     public GameState currentOnlineGameState;
-    [HideInInspector] public VendingMachine vendingMachine;
-
-    [SerializeField] PhotonView _photonView;
-    bool isOnlineMasterAndMine;
-    int numberSpawnBoss = 0;
-    private bool isLeavingRoom = false;
+    private int currentRound;
+    private bool isOnlineMasterAndMine;
+    private int numberSpawnBoss = 0;
     // Start is called before the first frame update
     void Start()
     {
-        QualitySettings.vSyncCount = 0;
+        QualitySettings.vSyncCount = 0; // FPS không bị giới hạn, có thể đạt giá trị rất cao
         Application.targetFrameRate = maxFrames;
         spawners = GameObject.FindGameObjectsWithTag("Spawner");
         spawnersBoss = GameObject.FindGameObjectsWithTag("SpawnerBoss");

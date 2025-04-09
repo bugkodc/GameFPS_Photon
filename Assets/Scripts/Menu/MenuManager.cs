@@ -8,7 +8,6 @@ public class MenuManager : MonoBehaviour
     [SerializeField] string mainScene;
     public void StartGame()
     {
-        
         SceneManager.LoadScene(mainScene);
     }
 }
