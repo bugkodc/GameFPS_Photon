@@ -12,6 +12,8 @@ TagManager:
   - Weapon
   - Headshot
   - SpawnerBoss
+  - Bullet
+  - Recorder
   layers:
   - Default
   - TransparentFX

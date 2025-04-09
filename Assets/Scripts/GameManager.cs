@@ -35,7 +35,9 @@ public class GameManager : MonoBehaviourPunCallbacks
     //Depending on whitch platform we are on, we load one or other scene.
     [SerializeField] string menuScene, mainScene;
     [SerializeField] GameObject pausePanel;
-    [SerializeField] GameObject erorBoss;
+    [SerializeField] public GameObject erorBoss;
+    [SerializeField] public GameObject recorder;
+    [SerializeField] public GameObject muteRecorder;
     //Black panel used for fade in when the game starts
     [SerializeField] GameObject fadeInGamePanel;
     GameState currentLocalGameState;
@@ -46,7 +48,9 @@ public class GameManager : MonoBehaviourPunCallbacks
     [SerializeField] PhotonView _photonView;
     bool isOnlineMasterAndMine;
     int numberSpawnBoss = 0;
-    private bool isLeavingRoom = false;
+    public bool isMobi = false;
+    public GameObject keyE;
+
     // Start is called before the first frame update
     void Start()
     {

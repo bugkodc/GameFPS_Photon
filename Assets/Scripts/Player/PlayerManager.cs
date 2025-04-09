@@ -6,6 +6,7 @@ using TMPro;
 using System.Linq;
 using Photon.Pun;
 using Unity.Mathematics;
+using Photon.Voice.Unity;
 
 public class PlayerManager : MonoBehaviour
 {
@@ -35,7 +36,9 @@ public class PlayerManager : MonoBehaviour
     VendingMachine vendingMachine;
     [SerializeField] private GameObject pointsPopup, pointsPopupStartPoint;
     public PhotonView photonView;
-
+    [SerializeField] private Recorder recorder;
+    bool isRecorder = false;
+    [SerializeField] public GameObject canvasParrent;
     private void Awake()
     {
         if (photonView.IsMine && PhotonNetwork.InRoom)
@@ -56,6 +59,7 @@ public class PlayerManager : MonoBehaviour
         currentPoints = 0;
         pointsText.text = currentPoints.ToString();
         namePlayer.text = PhotonNetwork.NickName;
+        recorder = GameObject.FindGameObjectWithTag("Recorder").GetComponent<Recorder>();
     }
 
     // Update is called once per frame
@@ -84,8 +88,30 @@ public class PlayerManager : MonoBehaviour
                 Debug.Log(vendingMachine.isShopOpen);
                 vendingMachine.OpenShop(this);
             }
+            if (gameManager.isMobi)
+            {
+                gameManager.keyE.SetActive(true);
+            }
 
         }
+        if (Input.GetKeyDown(KeyCode.T) && !gameManager.isMobi)
+        {
+            recorder.RecordingEnabled = isRecorder;
+            gameManager.recorder.SetActive(isRecorder);
+            gameManager.muteRecorder.SetActive(!isRecorder);
+            isRecorder = !isRecorder;
+        }
+    }
+    public void SetRecorder()
+    {
+        recorder.RecordingEnabled = isRecorder;
+        gameManager.recorder.SetActive(isRecorder);
+        gameManager.muteRecorder.SetActive(!isRecorder);
+        isRecorder = !isRecorder;
+    }
+    public void OpenShopMobi()
+    {
+        vendingMachine.OpenShop(this);
     }
     void UpdateHealth()
     {
@@ -254,6 +280,10 @@ public class PlayerManager : MonoBehaviour
         {
             vendingMachine = null;
             gameManager.vendingMachine = null;
+            if (gameManager.isMobi)
+            {
+                gameManager.keyE.SetActive(false);
+            }
         }
     }
     
