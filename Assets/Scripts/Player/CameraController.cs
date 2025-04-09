@@ -7,16 +7,15 @@ public class CameraController : MonoBehaviour
 {
     public Transform playerTransform;
 
-    float mouseX, mouseY;
+    private float mouseX, mouseY;
 
-    float xRotation, yRotation;
-
+    private float xRotation, yRotation;
 
     public float mouseSensitivity = 100;
-    [SerializeField] GameManager gameManager;
+    [SerializeField] private GameManager gameManager;
 
-    [SerializeField] PhotonView photonView;
-    [SerializeField] Camera _camera;
+    [SerializeField] private PhotonView photonView;
+    [SerializeField] private Camera _camera;
 
     private void Start()
     {

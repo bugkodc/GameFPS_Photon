@@ -4,14 +4,13 @@ using UnityEngine;
 
 public class AnimationEventReceive : MonoBehaviour
 {
-    [SerializeField] GameObject scopeOverlay;
-    [SerializeField] GameObject sniperGO;
-    [SerializeField] Camera playerCamera;
+    [SerializeField] private GameObject scopeOverlay;
+    [SerializeField] private GameObject sniperGO;
+    [SerializeField] private Camera playerCamera;
     public ZombieController zombieController;
     public BossController bossController;
     public bool isZoombie;
 
-    //Called when the animation of the zombie makes him stretch his arm to attack
     public void MakeDamage()
     {
         if (isZoombie)

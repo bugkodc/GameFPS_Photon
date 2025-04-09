@@ -1,13 +1,15 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using Photon.Pun;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-
+/// <summary>
+/// Kết nối đến Photon Server ngay khi scene bắt đầu.
+/// Sau khi kết nối, sẽ tự động load scene Menu.
+/// </summary>
 public class ConnectToSever : MonoBehaviourPunCallbacks
 {
     public float loadingTime = 2f;
-    // Start is called before the first frame update
     void Start()
     {
         PhotonNetwork.ConnectUsingSettings();
@@ -17,7 +19,6 @@ public class ConnectToSever : MonoBehaviourPunCallbacks
     {
         Debug.Log("Connected");
         Invoke("LoadMainMenu", loadingTime);
-
     }
     void LoadMainMenu()
     {

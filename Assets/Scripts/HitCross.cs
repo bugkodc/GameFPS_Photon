@@ -1,25 +1,22 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-//This cross is activated when we hit an enemy
+/// <summary>
+/// Hiển thị dấu "Hit Cross" khi tấn công trúng kẻ địch.
+/// Dấu này sẽ tự động tắt sau một khoảng thời gian.
+/// </summary>
 public class HitCross : MonoBehaviour
 {
-    [SerializeField] float disableTime = 0.3f;
-
-
-    //Is showed only for a little time
+    [SerializeField] private float disableTime = 0.3f;
     private void OnEnable()
     {
         RestartDisableCall();
     }
-    //Disable the cross
     void DisableHitBox()
     {
         this.gameObject.SetActive(false);
     }
-
-    //If the cross is already active, restart the disable invoke
     public void RestartDisableCall()
     {
         CancelInvoke();

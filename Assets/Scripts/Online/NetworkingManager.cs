@@ -6,7 +6,9 @@ using Photon.Realtime;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using TMPro;
-
+/// <summary>
+/// Quản lý quá trình kết nối, tạo/join room, hiển thị UI liên quan đến phòng và người chơi.
+/// </summary>
 public class NetworkingManager : MonoBehaviourPunCallbacks
 {
     [SerializeField] private MenuManager menuManager;
@@ -82,7 +84,7 @@ public class NetworkingManager : MonoBehaviourPunCallbacks
     {
         TMP_InputField usernameInputField = usernameInput.GetComponent<TMP_InputField>();
         usernameInputField.characterLimit = 10;
-        PhotonNetwork.NickName = usernameInputField.text;
+        photonView.Owner.NickName = usernameInputField.text;
         PhotonNetwork.JoinLobby();
         PhotonNetwork.AutomaticallySyncScene = true;
     }
@@ -90,7 +92,7 @@ public class NetworkingManager : MonoBehaviourPunCallbacks
     {
         TMP_InputField usernameInputField = usernameInput.GetComponent<TMP_InputField>();
         usernameInputField.characterLimit = 10;
-        PhotonNetwork.NickName = usernameInputField.text;
+        photonView.Owner.NickName = usernameInputField.text;
         PhotonNetwork.JoinRandomRoom();
         PhotonNetwork.AutomaticallySyncScene = true;
     }

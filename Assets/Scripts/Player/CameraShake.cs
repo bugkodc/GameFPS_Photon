@@ -4,9 +4,7 @@ using UnityEngine;
 
 public class CameraShake : MonoBehaviour
 {
-    [SerializeField] GameManager gameManager;
-
-
+    [SerializeField] private GameManager gameManager;
     public IEnumerator Shake(float shakeDuration, float magnitude)
     {
         float elapsed = 0.0f;

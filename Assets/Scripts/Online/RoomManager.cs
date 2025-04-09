@@ -3,12 +3,13 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using Photon.Pun;
-
+/// <summary>
+/// Quản lý việc instantiate nhân vật sau khi vào phòng và load scene.
+/// </summary>
 public class RoomManager : MonoBehaviourPunCallbacks
 {
 
     public static RoomManager roomManager;
-    SceneManager sceneManager;
     public bool isMobi = false;
 
     private void Awake()
@@ -38,10 +39,7 @@ public class RoomManager : MonoBehaviourPunCallbacks
 
     void InstantiatePlayer(Scene scene, LoadSceneMode loadSceneMode)
     {
-        //if (!PhotonNetwork.IsConnectedAndReady) return;
-
         Vector3 playerSpawnPosition = new Vector3(Random.Range(-3, 3), 2, Random.Range(-3, 3));
-
         // Chỉ spawn nhân vật cho chính client này
         if (PhotonNetwork.LocalPlayer.IsLocal && PhotonNetwork.InRoom)
         {

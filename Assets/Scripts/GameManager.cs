@@ -21,7 +21,7 @@ public class GameManager : MonoBehaviourPunCallbacks
     [SerializeField] int maxFrames = 90;
     [SerializeField] GameObject[] spawners;
     [SerializeField] GameObject[] spawnersBoss;
-    int currentRound;
+    public int currentRound;
 
     [SerializeField] TextMeshProUGUI roundText;
     [SerializeField] TextMeshProUGUI roundsSurvivedText;

@@ -1,22 +1,27 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using Photon.Pun;
 using Photon.Realtime;
+/// <summary>
+/// Quản lý mở shop, chọn item, mua hàng và đồng bộ trạng thái với các client khác.
+/// </summary>
 public class VendingMachine : MonoBehaviourPunCallbacks
 {
     ExitGames.Client.Photon.Hashtable hash = new ExitGames.Client.Photon.Hashtable();
-    [SerializeField] GameObject shopCanvas;
-    [SerializeField] GameManager gameManager;
-    [SerializeField] GameObject doText;
-    [SerializeField] GameObject firstSelectedButton;
+    [SerializeField] private GameObject shopCanvas;
+    [SerializeField] private GameManager gameManager;
+    [SerializeField] private GameObject doText;
+    [SerializeField] private GameObject firstSelectedButton;
+    private EventSystem eventSystem;
+    private string isShopOpenKey = "isShopOpen";
+
     public bool isShopOpen = false;
     public PlayerManager _playerManager;
     public ShopSlot selectedShopSlot;
-    EventSystem eventSystem;
-    string isShopOpenKey = "isShopOpen";
+
     private void Start()
     {
         eventSystem = EventSystem.current;
@@ -25,7 +30,6 @@ public class VendingMachine : MonoBehaviourPunCallbacks
     {
         doText.SetActive(true);
     }
-
     private void OnTriggerExit(Collider other)
     {
         doText.SetActive(false);
@@ -37,14 +41,18 @@ public class VendingMachine : MonoBehaviourPunCallbacks
             hash[isShopOpenKey] = true;
         }
         else
+        {
             hash.Add(isShopOpenKey, true);
-
+        }
         PhotonNetwork.LocalPlayer.SetCustomProperties(hash);
+
         gameManager = playerManager.gameObject.GetComponentInChildren<GameManager>();
         _playerManager = playerManager;
+
         Debug.Log("OpeningShop");
         shopCanvas.SetActive(true);
         eventSystem.SetSelectedGameObject(firstSelectedButton);
+
         gameManager.Shop();
         if (gameManager.isMobi)
         {
@@ -59,12 +67,16 @@ public class VendingMachine : MonoBehaviourPunCallbacks
             hash[isShopOpenKey] = false;
         }
         else
+        {
             hash.Add(isShopOpenKey, false);
+        }
 
         PhotonNetwork.LocalPlayer.SetCustomProperties(hash);
         Debug.Log("Close shop");
+
         shopCanvas.SetActive(false);
         gameManager.Resume();
+
         if (gameManager.isMobi)
         {
             _playerManager.canvasParrent.SetActive(true);
@@ -93,7 +105,6 @@ public class VendingMachine : MonoBehaviourPunCallbacks
 
             }
         }
-
     }
     public void BuyWeapon()
     {
@@ -107,11 +118,23 @@ public class VendingMachine : MonoBehaviourPunCallbacks
     }
     public void BuyHeal()
     {
-        _playerManager.Heal(true);
+       
+        if (_playerManager && _playerManager.currentPoints >= selectedShopSlot.weaponSO.cost)
+        {
+            _playerManager.Heal(true);
+            _playerManager.UpdatePoints(-gameManager.currentRound * 250 + 500);
+            ExitShop();
+        }
     }
     public void BuyAmmo()
     {
-        _playerManager.BuyAmmo();
+       
+        if (_playerManager && _playerManager.currentPoints >= selectedShopSlot.weaponSO.cost)
+        {
+            _playerManager.BuyAmmo();
+            _playerManager.UpdatePoints(-gameManager.currentRound * 250 + 500);
+            ExitShop();
+        }
     }
     public override void OnPlayerPropertiesUpdate(Player targetPlayer, ExitGames.Client.Photon.Hashtable changedProps)
     {

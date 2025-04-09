@@ -6,42 +6,38 @@ using UnityEngine;
 public class CharacterMovementMobile : MonoBehaviour
 {
 
-    float verticalInput, horizontalInput;
+    [Header("Movement")]
     public CharacterController characterController;
-    PlayerManager playerManager;
-    public float speed = 12;
-    public float gravity = -9.81f;
-    public float jumpHeight = 3;
-    Vector3 yVelocity;
-    public Transform isGroundedGO;
-    bool isGrounded;
-    [SerializeField]
-    float checkGroundRadius;
-    [SerializeField]
-    public LayerMask groundLayer;
-    //float screenWidth = Screen.width;
-    //int leftFingerID, rightFingerID;
-    Vector3 direction;
-
-    Vector2 moveTouchDirection;
-    Vector2 moveTouchStart;
-    [SerializeField] PhotonView photonView;
     public VariableJoystick variableJoystick;
+    public float speed = 12f;
 
-    // Xoay camera bằng touch input
-    public Transform playerBody; // Nhân vật cần xoay
-    public float sensitivity = 100f; // Độ nhạy xoay
+    [Header("Jump & Gravity")]
+    public float gravity = -9.81f;
+    public float jumpHeight = 3f;
+    private Vector3 yVelocity;
+    private bool isGrounded;
+
+    [Header("Ground Check")]
+    public Transform isGroundedGO;
+    public float checkGroundRadius = 0.3f;
+    public LayerMask groundLayer;
+
+    [Header("Camera Rotation")]
+    public Transform playerBody;
+    public Transform cameraTransform;
+    public float sensitivity = 100f;
+    public float verticalClampAngle = 60f;
     private Vector2 lastTouchPosition;
+    private float verticalRotation = 0f;
     private bool isDragging = false;
-    private float verticalRotation = 0f; // Lưu góc xoay dọc
-    public Transform cameraTransform; // Camera để xoay lên/xuống
-    public float verticalClampAngle = 60f; // Giới hạn góc nhìn lên xuống
+
+    Vector3 direction;
+    private PlayerManager playerManager;
+    [SerializeField] PhotonView photonView;
     // Start is called before the first frame update
     void Start()
     {
         playerManager = GetComponent<PlayerManager>();
-        //leftFingerID = -1;
-        //rightFingerID = -1;
     }
 
     // Update is called once per frame
@@ -76,7 +72,7 @@ public class CharacterMovementMobile : MonoBehaviour
     {
         if (Input.touchCount > 0)
         {
-            Touch touch = Input.GetTouch(0); // Lấy touch đầu tiên
+            Touch touch = Input.GetTouch(0); 
             if (touch.position.x > Screen.width / 2)
             {
                 if (touch.phase == TouchPhase.Began)
@@ -104,14 +100,11 @@ public class CharacterMovementMobile : MonoBehaviour
     }
     void SimulateGravity()
     {
-        //Reset gravity if we are on the ground
         if (isGrounded && yVelocity.y < 0)
         {
-            //We use -2 in order to avoid bugs related to 0 speed.
+            
             yVelocity.y = -2;
         }
-
-        //Increase yvelocity by the force of gravity every second
         yVelocity.y += gravity * Time.deltaTime;
     }
 }

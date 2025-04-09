@@ -11,53 +11,66 @@ using Photon.Voice.Unity;
 public class PlayerManager : MonoBehaviour
 {
     public static PlayerManager LocalPlayerInstance;
+
+    [Header("UI References")]
     [SerializeField] private TextMeshProUGUI pointsText;
     [SerializeField] private TextMeshProUGUI namePlayer;
+    [SerializeField] private Slider healthSlider;
+    [SerializeField] private CanvasGroup takeDamageCG;
+
+    [Header("Health Settings")]
     public float currentHealth = 100;
-
     public float maximumHealth = 100;
-    public int currentPoints;
-    [SerializeField] Slider healthSlider;
     public bool isAlive;
-    [SerializeField] CameraShake cameraShake;
 
-    [SerializeField] GameManager gameManager;
+    [Header("Points")]
+    public int currentPoints;
+    [SerializeField] private GameObject pointsPopup;
+    [SerializeField] private GameObject pointsPopupStartPoint;
 
-    [SerializeField] CanvasGroup takeDamageCG;
-    [SerializeField] float damagedBlinkTime = 0.5f;
-
-
-    //Weapon change
-    [SerializeField] GameObject weaponHolder;
-    WeaponController currentWeapon;
-
-    List<int> weaponsAvailableIndexes = new List<int>();
-    int currentWeaponIndex;
-    VendingMachine vendingMachine;
-    [SerializeField] private GameObject pointsPopup, pointsPopupStartPoint;
-    public PhotonView photonView;
+    [Header("References")]
+    [SerializeField] private CameraShake cameraShake;
+    [SerializeField] public GameManager gameManager;
+    [SerializeField] public PhotonView photonView;
     [SerializeField] private Recorder recorder;
-    bool isRecorder = false;
     [SerializeField] public GameObject canvasParrent;
+
+    [Header("Weapon System")]
+    [SerializeField] private GameObject weaponHolder;
+    private WeaponController currentWeapon;
+    private List<int> weaponsAvailableIndexes = new List<int>();
+    private int currentWeaponIndex;
+
+    private VendingMachine vendingMachine;
+    private bool isRecorder = false;
+
+    [Header("Effect Settings")]
+    [SerializeField] private float damagedBlinkTime = 0.5f;
     private void Awake()
     {
         if (photonView.IsMine && PhotonNetwork.InRoom)
+        {
             LocalPlayerInstance = this;
-        else if (!PhotonNetwork.InRoom) LocalPlayerInstance = this;
+        }
+        else if (!PhotonNetwork.InRoom)
+        {
+            LocalPlayerInstance = this;
+        }
     }
     void Start()
     {
-        //All weapons are deactivated by default except pistol.
-        //When we buy a weapon we make it available
+        // Setup initial weapon (pistol)
         currentWeaponIndex = 0;
         currentWeapon = weaponHolder.transform.GetChild(currentWeaponIndex).GetComponent<WeaponController>();
-        Debug.Log(currentWeapon + " Current weapon " + weaponHolder.transform.GetChild(currentWeaponIndex).name);
         SetWeaponAvailable(WeaponType.pistol);
+
+        // Health & Points
         currentHealth = maximumHealth;
-        healthSlider.value = 1;
+        healthSlider.value = 1f;
         isAlive = true;
         currentPoints = 0;
         pointsText.text = currentPoints.ToString();
+
         namePlayer.text = PhotonNetwork.NickName;
         recorder = GameObject.FindGameObjectWithTag("Recorder").GetComponent<Recorder>();
     }
@@ -96,10 +109,7 @@ public class PlayerManager : MonoBehaviour
         }
         if (Input.GetKeyDown(KeyCode.T) && !gameManager.isMobi)
         {
-            recorder.RecordingEnabled = isRecorder;
-            gameManager.recorder.SetActive(isRecorder);
-            gameManager.muteRecorder.SetActive(!isRecorder);
-            isRecorder = !isRecorder;
+            SetRecorder();
         }
     }
     public void SetRecorder()
@@ -136,9 +146,6 @@ public class PlayerManager : MonoBehaviour
         if (isAlive)
         {
             isAlive = false;
-            gameObject.SetActive(false); // Ẩn nhân vật thay vì hủy
-
-            // Kiểm tra xem còn player nào sống không
             PlayerManager[] players = FindObjectsOfType<PlayerManager>();
             bool hasAlivePlayer = false;
 
@@ -150,12 +157,11 @@ public class PlayerManager : MonoBehaviour
                     break;
                 }
             }
-
             if (!hasAlivePlayer)
             {
-                // Gửi RPC để tất cả Client đều gọi GameOver
                 photonView.RPC("GameOverRPC", RpcTarget.All);
             }
+            gameObject.SetActive(false);
         }
     }
     [PunRPC]
@@ -180,7 +186,9 @@ public class PlayerManager : MonoBehaviour
     public void Heal(bool max)
     {
         if (max)
+        {
             currentHealth = maximumHealth;
+        }
         UpdateHealth();
     }
 
@@ -205,7 +213,6 @@ public class PlayerManager : MonoBehaviour
 
     public void ChangeWeapon(int weaponsAvailableIndex)
     {
-        // CheckWeaponsAvailable();
         Debug.Log(currentWeapon + " Current weapon on change weapon");
         if (currentWeapon.isReloading)
             currentWeapon.CancelReload();
@@ -215,9 +222,6 @@ public class PlayerManager : MonoBehaviour
             currentWeapon.StopScoping();
             currentWeapon.SetAimMode(false);
         }
-
-
-        //Activate the weapon with the right index and deactivate the others.
         foreach (WeaponController weapon in weaponHolder.GetComponentsInChildren<WeaponController>(true))
         {
             if (weaponsAvailableIndex == weapon.indexPosition && weapon.isAvailable)

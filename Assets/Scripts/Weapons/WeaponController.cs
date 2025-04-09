@@ -8,8 +8,6 @@ using Photon.Pun;
 public enum WeaponType { pistol, rifle, machinegun, shotgun, sniper }
 public interface IWeapon
 {
-    //Calculates the damage, depending of the weapon we are using,
-    // the distance, or where do we hit the enemy.
     public float CalculateDamage(WeaponStats weaponSO, ZombieManager enemyManager, RaycastHit hit);
 };
 public class WeaponController : MonoBehaviour
