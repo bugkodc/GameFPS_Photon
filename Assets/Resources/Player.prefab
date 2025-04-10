@@ -4829,6 +4829,9 @@ MonoBehaviour:
   photonView: {fileID: 2619255381216889689}
   recorder: {fileID: 0}
   canvasParrent: {fileID: 0}
+  bob: {fileID: 2247152336178455755}
+  capsule: {fileID: 8425105290730913593}
+  Root: {fileID: 473427538955060178}
   weaponHolder: {fileID: 1243986291160104326}
   damagedBlinkTime: 0.5
 --- !u!114 &2619255381216889689

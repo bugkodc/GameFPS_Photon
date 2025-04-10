@@ -100,7 +100,7 @@ public class ZombieManager : MonoBehaviour
             currentHealth = maxHealth;
         HPSlider.value = (float)currentHealth / (float)maxHealth;
     }
-    void Die()
+    public void Die()
     {
         isAlive = false;
         HPSlider.gameObject.SetActive(false);

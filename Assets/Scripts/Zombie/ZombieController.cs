@@ -42,10 +42,11 @@ public class ZombieController : MonoBehaviourPunCallbacks
     float counterAttack;
     bool isInRangeToMove, isInRangeToAttack, isAlive;
 
-
+    bool isAttacking;
     float maxSpeed;
     NavMeshPath path;
     [SerializeField] float armLength = 1.5f;
+    private Vector3 currentPosition;
 
     // Start is called before the first frame update
     void Start()
@@ -60,9 +61,10 @@ public class ZombieController : MonoBehaviourPunCallbacks
         navMeshAgent.speed = Random.Range(minMovementSpeed, maxMovementSpeed);
         maxSpeed = navMeshAgent.speed;
         path = new NavMeshPath();
-
         rangeToAttack = navMeshAgent.stoppingDistance + 0.1f;
         attackSpeed = Random.Range(minAttackSpeed, maxAttackSpeed);
+        StartCoroutine("CheckMoveZombie");
+
     }
 
     // Update is called once per frame
@@ -99,18 +101,26 @@ public class ZombieController : MonoBehaviourPunCallbacks
         counterAttack += Time.deltaTime;
     }
 
+    IEnumerator CheckMoveZombie()
+    {
+        currentPosition = gameObject.transform.position;
+        yield return new WaitForSeconds(5f);
+        if (currentPosition == gameObject.transform.position && !isAttacking)
+        {
+            zombieManager.Die();
+        }
+        else
+        {
+            StartCoroutine("CheckMoveZombie");
+        }
+
+    }
     void Movement()
     {
-
-        //Sets the speed of the animation to the zombie speed
         animator.SetFloat(runningSpeed, navMeshAgent.velocity.magnitude / maxSpeed);
 
-        //Checks if the player is in a reachable place
         navMeshAgent.CalculatePath(target, path);
 
-        //move to the player direction if the player is in a reachable place,
-        //the distance to the player is bigger than the attack range and lower than the moveRange,
-        //and the zombie is not dead.
         if (isInRangeToMove && path.status == NavMeshPathStatus.PathComplete &&
         !isInRangeToAttack && isAlive)
         {
@@ -127,15 +137,16 @@ public class ZombieController : MonoBehaviourPunCallbacks
     {
         if (isInRangeToAttack && isAlive)
         {
-            //If is in range to attack we need to manually rotate our enemy to face the player
-            FaceTarget();
 
+            FaceTarget();
+            isAttacking = false;
             if (counterAttack >= attackSpeed)
             {
                 animator.SetTrigger(isAttackingTrigger);
                 counterAttack = 0;
-                //The damage is made by an event in the animation which calls MakeDamage
+                isAttacking = true;
             }
+           
         }
     }
     void FaceTarget()
@@ -145,7 +156,6 @@ public class ZombieController : MonoBehaviourPunCallbacks
         transform.rotation = Quaternion.Slerp(this.transform.rotation, lookRotation, Time.deltaTime * 5f);
     }
 
-    //It's called when the zombie stretches his arm to attack
     public void MakeDamage()
     {
         if (distanceToPlayer <= rangeToAttack + armLength)

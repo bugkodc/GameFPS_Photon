@@ -7,6 +7,7 @@ using System.Linq;
 using Photon.Pun;
 using Unity.Mathematics;
 using Photon.Voice.Unity;
+using static UnityEditor.Recorder.OutputPath;
 
 public class PlayerManager : MonoBehaviour
 {
@@ -34,7 +35,9 @@ public class PlayerManager : MonoBehaviour
     [SerializeField] public PhotonView photonView;
     [SerializeField] private Recorder recorder;
     [SerializeField] public GameObject canvasParrent;
-
+    [SerializeField] public GameObject bob;
+    [SerializeField] public GameObject capsule;
+    [SerializeField] public GameObject Root;
     [Header("Weapon System")]
     [SerializeField] private GameObject weaponHolder;
     private WeaponController currentWeapon;
@@ -70,8 +73,10 @@ public class PlayerManager : MonoBehaviour
         isAlive = true;
         currentPoints = 0;
         pointsText.text = currentPoints.ToString();
-
-        namePlayer.text = PhotonNetwork.NickName;
+        if (PhotonNetwork.InRoom)
+        {
+            namePlayer.text = photonView.Owner.NickName;
+        }
         recorder = GameObject.FindGameObjectWithTag("Recorder").GetComponent<Recorder>();
     }
 
@@ -143,26 +148,36 @@ public class PlayerManager : MonoBehaviour
     }
     void Die()
     {
-        if (isAlive)
+        if (!isAlive) return;
+        isAlive = false;
+        PlayerManager[] players = FindObjectsOfType<PlayerManager>();
+        bool hasAlivePlayer = false;
+        foreach (PlayerManager player in players)
         {
-            isAlive = false;
-            PlayerManager[] players = FindObjectsOfType<PlayerManager>();
-            bool hasAlivePlayer = false;
-
-            foreach (PlayerManager player in players)
+            if (player.isAlive)
             {
-                if (player.isAlive)
-                {
-                    hasAlivePlayer = true;
-                    break;
-                }
+                hasAlivePlayer = true;
+                break;
             }
-            if (!hasAlivePlayer)
+        }
+        if (!hasAlivePlayer)
+        {
+            if (PhotonNetwork.InRoom)
             {
                 photonView.RPC("GameOverRPC", RpcTarget.All);
             }
-            gameObject.SetActive(false);
+            GameOverRPC();
         }
+        OffComponent();
+
+    }
+    void OffComponent()
+    {
+        bob.SetActive(false);
+        capsule.SetActive(false);
+        Root.SetActive(false);
+        gameObject.GetComponent<CharacterMovement>().enabled = false;
+        ZombieController[] Zombies = FindAnyObjectByType<ZombieController>;
     }
     [PunRPC]
     void GameOverRPC()
@@ -173,9 +188,9 @@ public class PlayerManager : MonoBehaviour
     {
         currentPoints += pointsUpd;
         pointsText.text = currentPoints.ToString();
-        GameObject popupPoints = Instantiate(pointsPopup, pointsPopupStartPoint.transform.position, pointsText.transform.rotation ,   pointsPopupStartPoint.transform);
+        GameObject popupPoints = Instantiate(pointsPopup, pointsPopupStartPoint.transform.position, pointsText.transform.rotation, pointsPopupStartPoint.transform);
         TextMeshPro tmproText = popupPoints.GetComponent<TextMeshPro>();
-        if(tmproText)tmproText.SetText($"+ {pointsUpd.ToString()}");
+        if (tmproText) tmproText.SetText($"+ {pointsUpd.ToString()}");
         StartCoroutine(MoveAndDestroyPointsPopup(popupPoints));
     }
     public void Heal(float healAmount)
@@ -290,8 +305,8 @@ public class PlayerManager : MonoBehaviour
             }
         }
     }
-    
-    IEnumerator MoveAndDestroyPointsPopup (GameObject popup)
+
+    IEnumerator MoveAndDestroyPointsPopup(GameObject popup)
     {
         float timer = .3f;
         while (timer > 0)

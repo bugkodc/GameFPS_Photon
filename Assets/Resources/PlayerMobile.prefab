@@ -5479,6 +5479,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   characterController: {fileID: 3868745692818420388}
+  variableJoystick: {fileID: 7503171830111118160}
   speed: 12
   gravity: -9.81
   jumpHeight: 3
@@ -5487,12 +5488,11 @@ MonoBehaviour:
   groundLayer:
     serializedVersion: 2
     m_Bits: 8
-  photonView: {fileID: 2619255381216889689}
-  variableJoystick: {fileID: 7503171830111118160}
   playerBody: {fileID: 6835297398406708624}
-  sensitivity: 100
   cameraTransform: {fileID: 7502189028220253496}
+  sensitivity: 100
   verticalClampAngle: 60
+  photonView: {fileID: 2619255381216889689}
 --- !u!114 &936253686832555922
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5507,22 +5507,24 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   pointsText: {fileID: 5735289125744668453}
   namePlayer: {fileID: 5621849042029501910}
+  healthSlider: {fileID: 1404007389079981199}
+  takeDamageCG: {fileID: 5186473056762157314}
   currentHealth: 100
   maximumHealth: 100
-  currentPoints: 0
-  healthSlider: {fileID: 1404007389079981199}
   isAlive: 1
-  cameraShake: {fileID: 8198275870125664955}
-  gameManager: {fileID: 4338560955155590290}
-  takeDamageCG: {fileID: 5186473056762157314}
-  damagedBlinkTime: 0.5
-  weaponHolder: {fileID: 1243986291160104326}
+  currentPoints: 0
   pointsPopup: {fileID: 6511283006904605165, guid: 13c2d2236aa5a7b439914ac01ae298a0,
     type: 3}
   pointsPopupStartPoint: {fileID: 2946605291939177877}
+  cameraShake: {fileID: 8198275870125664955}
+  gameManager: {fileID: 4338560955155590290}
   photonView: {fileID: 2619255381216889689}
   recorder: {fileID: 0}
   canvasParrent: {fileID: 5186473057401857482}
+  bob: {fileID: 2247152336178455755}
+  capsule: {fileID: 8425105290730913593}
+  weaponHolder: {fileID: 1243986291160104326}
+  damagedBlinkTime: 0.5
 --- !u!114 &2619255381216889689
 MonoBehaviour:
   m_ObjectHideFlags: 0

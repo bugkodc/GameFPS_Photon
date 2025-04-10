@@ -16,6 +16,7 @@ public class MenuManager : MonoBehaviourPunCallbacks
     }
     public override void OnDisconnected (DisconnectCause cause)
     {
+
         SceneManager.LoadScene(sceneGamePlay);
     }
 }

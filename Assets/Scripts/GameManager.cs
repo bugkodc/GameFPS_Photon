@@ -67,8 +67,7 @@ public class GameManager : MonoBehaviourPunCallbacks
         isOnlineMasterAndMine = PhotonNetwork.InRoom && _photonView.IsMine && PhotonNetwork.IsMasterClient;
         if (!PhotonNetwork.InRoom || isOnlineMasterAndMine)
         {
-            if (!PhotonNetwork.InRoom)
-                PhotonNetwork.OfflineMode = true;
+            
             StartCoroutine(StartNextRound());
         }
 
@@ -299,13 +298,10 @@ public class GameManager : MonoBehaviourPunCallbacks
         {
             Time.timeScale = 1;
         }
-        PhotonNetwork.LeaveRoom();
+        //PhotonNetwork.LeaveRoom();
         currentLocalGameState = GameState.menu;
-        SceneManager.LoadScene(menuScene);
+        SceneManager.LoadScene(menuScene);    
     }
-
-
-
     void Pause()
     {
         Cursor.lockState = CursorLockMode.None;
