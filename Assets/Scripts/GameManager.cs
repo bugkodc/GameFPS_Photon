@@ -40,6 +40,10 @@ public class GameManager : MonoBehaviourPunCallbacks
     private int currentRound;
     private bool isOnlineMasterAndMine;
     private int numberSpawnBoss = 0;
+    public bool isMobi = false;
+    public GameObject keyE;
+    public GameObject recorder;
+    public GameObject muteRecorder;
     // Start is called before the first frame update
     void Start()
     {
@@ -288,7 +292,7 @@ public class GameManager : MonoBehaviourPunCallbacks
         {
             Time.timeScale = 1;
         }
-        PhotonNetwork.LeaveRoom();
+        //PhotonNetwork.LeaveRoom();
         currentLocalGameState = GameState.menu;
         SceneManager.LoadScene(menuScene);
     }

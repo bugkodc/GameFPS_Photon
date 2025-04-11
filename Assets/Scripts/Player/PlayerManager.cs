@@ -58,8 +58,9 @@ public class PlayerManager : MonoBehaviour
         isAlive = true;
         currentPoints = 0;
         pointsText.text = currentPoints.ToString();
-        namePlayer.text = PhotonNetwork.NickName;
+        namePlayer.text = photonView.Owner.NickName;
         recorder = GameObject.FindGameObjectWithTag("Recorder").GetComponent<Recorder>();
+
     }
 
     // Update is called once per frame
@@ -137,8 +138,6 @@ public class PlayerManager : MonoBehaviour
         {
             isAlive = false;
             gameObject.SetActive(false); // Ẩn nhân vật thay vì hủy
-
-            // Kiểm tra xem còn player nào sống không
             PlayerManager[] players = FindObjectsOfType<PlayerManager>();
             bool hasAlivePlayer = false;
 
@@ -153,8 +152,9 @@ public class PlayerManager : MonoBehaviour
 
             if (!hasAlivePlayer)
             {
-                // Gửi RPC để tất cả Client đều gọi GameOver
                 photonView.RPC("GameOverRPC", RpcTarget.All);
+                
+                
             }
         }
     }

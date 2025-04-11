@@ -13,10 +13,6 @@ public class NetworkingManager : MonoBehaviourPunCallbacks
     [SerializeField] private GameObject lobbyPanel, mainPanel, usernamePanel,
     usernameInput, RoomIDInput, playerFoundUI, playerFoundHolder, idRoomText , StartButton;
 
-    private string userName;
-    private bool onUserNameScreen;
-    private int indexPlayer;
-
     void Start()
     {
         // Nếu Photon đang ở trạng thái Leaving hoặc chưa kết nối, thực hiện reconnect.
@@ -63,26 +59,26 @@ public class NetworkingManager : MonoBehaviourPunCallbacks
     {
         mainPanel.SetActive(false);
         usernamePanel.SetActive(true);
-        onUserNameScreen = true;
+       
     }
     public void LobbyToMain()
     {
         mainPanel.SetActive(true);
         lobbyPanel.SetActive(false);
         PhotonNetwork.LeaveRoom();
-        onUserNameScreen = false;
+        
     }
     public void UserNameToMain()
     {
         mainPanel.SetActive(true);
         usernamePanel.SetActive(false);
-        onUserNameScreen = false;
+     
     }
     public void SubmitJoinRoom()
     {
         TMP_InputField usernameInputField = usernameInput.GetComponent<TMP_InputField>();
         usernameInputField.characterLimit = 10;
-        PhotonNetwork.NickName = usernameInputField.text;
+        photonView.Owner.NickName = usernameInputField.text;
         PhotonNetwork.JoinLobby();
         PhotonNetwork.AutomaticallySyncScene = true;
     }
@@ -90,7 +86,7 @@ public class NetworkingManager : MonoBehaviourPunCallbacks
     {
         TMP_InputField usernameInputField = usernameInput.GetComponent<TMP_InputField>();
         usernameInputField.characterLimit = 10;
-        PhotonNetwork.NickName = usernameInputField.text;
+        photonView.Owner.NickName = usernameInputField.text;
         PhotonNetwork.JoinRandomRoom();
         PhotonNetwork.AutomaticallySyncScene = true;
     }
@@ -149,7 +145,7 @@ public class NetworkingManager : MonoBehaviourPunCallbacks
     {
         usernamePanel.SetActive(false);
         lobbyPanel.SetActive(true);
-        onUserNameScreen = false;
+      
         idRoomText.GetComponent<TextMeshProUGUI>().text = PhotonNetwork.CurrentRoom.Name;
         UpdatePlayersListUI();
 
