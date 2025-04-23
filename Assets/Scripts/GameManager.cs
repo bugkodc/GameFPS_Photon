@@ -4,10 +4,11 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using UnityEngine.SceneManagement;
-using Photon.Pun;
-using Photon.Realtime;
-using Hashtable = ExitGames.Client.Photon.Hashtable;
 
+/// <summary>
+/// GameState: Defines the possible states of the game.
+/// GameState: Định nghĩa các trạng thái có thể của game.
+/// </summary>
 public enum GameState
 {
     inGame,
@@ -16,42 +17,45 @@ public enum GameState
     menu,
     shop
 }
-public class GameManager : MonoBehaviourPunCallbacks
+
+/// <summary>
+/// GameManager: Quản lý trạng thái game, sinh quái, xử lý UI và điều khiển luồng chơi.
+/// GameManager: Manages game states, spawns enemies, handles UI, and controls game flow.
+/// </summary>
+public class GameManager : MonoBehaviour
 {
-    [SerializeField] int maxFrames = 90;
-    [SerializeField] GameObject[] spawners;
-    [SerializeField] GameObject[] spawnersBoss;
+    [Header("Game Settings")]
+    [SerializeField] private string menuScene, mainScene;
+    [SerializeField] private int maxFrames = 90;
+
+    [Header("Spawners")]
+    [SerializeField] private GameObject[] spawners;
+    [SerializeField] private GameObject[] spawnersBoss;
+
+    [Header("UI References")]
+    [SerializeField] private TextMeshProUGUI roundText;
+    [SerializeField] private TextMeshProUGUI roundsSurvivedText;
+    [SerializeField] private GameObject pausePanel;
+    [SerializeField] private GameObject fadeInGamePanel;
+    [SerializeField] private GameObject gameOverPanel;
+
+    [Header("Prefabs")]
+    [SerializeField] private GameObject zombiePrefab;
+
+    [Header("Game Variables")]
     public int currentRound;
-
-    [SerializeField] TextMeshProUGUI roundText;
-    [SerializeField] TextMeshProUGUI roundsSurvivedText;
-
-    string stringRoundText;
-
-    [SerializeField] GameObject zombiePrefab;
-
-    [SerializeField] GameObject gameOverPanel;
-
-    //Depending on whitch platform we are on, we load one or other scene.
-    [SerializeField] string menuScene, mainScene;
-    [SerializeField] GameObject pausePanel;
-    [SerializeField] public GameObject erorBoss;
-    [SerializeField] public GameObject recorder;
-    [SerializeField] public GameObject muteRecorder;
-    //Black panel used for fade in when the game starts
-    [SerializeField] GameObject fadeInGamePanel;
-    GameState currentLocalGameState;
-    public GameState CurrentLocalGameState { get => currentLocalGameState; }
-    public GameState currentOnlineGameState;
-    [HideInInspector] public VendingMachine vendingMachine;
-
-    [SerializeField] PhotonView _photonView;
-    bool isOnlineMasterAndMine;
-    int numberSpawnBoss = 0;
-    public bool isMobi = false;
+    public GameObject erorBoss;
+    public GameObject recorder;
+    public GameObject muteRecorder;
     public GameObject keyE;
+    [HideInInspector] public VendingMachine vendingMachine;
+    private GameState currentLocalGameState;
+    public GameState CurrentLocalGameState => currentLocalGameState;
+    public GameState currentOnlineGameState;
+    private bool isOnlineMasterAndMine;
+    private int numberSpawnBoss = 0;
 
-    // Start is called before the first frame update
+
     void Start()
     {
         QualitySettings.vSyncCount = 0;
@@ -60,320 +64,175 @@ public class GameManager : MonoBehaviourPunCallbacks
         spawnersBoss = GameObject.FindGameObjectsWithTag("SpawnerBoss");
         StartGame();
     }
+
     void StartGame()
     {
         currentLocalGameState = GameState.inGame;
-        StartCoroutine(FadeInOrOutPanel(fadeInGamePanel, 3, false, false));
-        isOnlineMasterAndMine = PhotonNetwork.InRoom && _photonView.IsMine && PhotonNetwork.IsMasterClient;
-        if (!PhotonNetwork.InRoom || isOnlineMasterAndMine)
-        {
-            
-            StartCoroutine(StartNextRound());
-        }
-
+        StartCoroutine(FadeInOrOutPanel(fadeInGamePanel, 3f, false, false));
+        StartCoroutine(StartNextRound());
     }
 
-    // Update is called once per frame
     void Update()
     {
-        if (PhotonNetwork.InRoom && !_photonView.IsMine)
-        {
-            return;
-        }
         if (Input.GetButtonDown("Pause"))
-        {
             BackGame();
-
-        }
     }
+
     public void BackGame()
     {
         switch (currentLocalGameState)
         {
             case GameState.pause:
-                Resume(); break;
+                Resume();
+                break;
             case GameState.inGame:
-                Pause(); break;
+                Pause();
+                break;
             case GameState.shop:
-                vendingMachine.ExitShop(); break;
+                vendingMachine.ExitShop();
+                break;
         }
     }
+
     void SetRound(int round)
     {
         currentRound = round;
         roundText.text = $"Round: {currentRound}";
-        Debug.Log("SetRound");
     }
 
     public IEnumerator StartNextRound()
     {
-        //TODO: Animation and sound changing roung
         Debug.Log("StartNextRound");
-        if (PhotonNetwork.InRoom)
-        {
-            Hashtable localPlayerOptions = new Hashtable();
-            localPlayerOptions.Add("currentRound", currentRound + 1);
-            PhotonNetwork.LocalPlayer.SetCustomProperties(localPlayerOptions);
-        }
-        else
-            SetRound(currentRound + 1);
-        yield return new WaitForSeconds(2);
+        SetRound(currentRound + 1);
+        yield return new WaitForSeconds(2f);
+
         if (currentRound % 5 == 0)
         {
             StartCoroutine(ShowEror());
             numberSpawnBoss++;
-            int randomSpawnIndex = Random.Range(0, spawnersBoss.Length);
-            Debug.Log(randomSpawnIndex + " RandomSpawnIndex " + spawnersBoss.Length);
-
-            //Photon network instantiation or normal one
-            if (PhotonNetwork.InRoom)
-                InstantiateZombieBoss(true, randomSpawnIndex);
-            else
-                InstantiateZombieBoss(false, randomSpawnIndex);
+            int idx = Random.Range(0, spawnersBoss.Length);
+            InstantiateZombieBoss(false, idx);
         }
         else
         {
             for (int i = 0; i < currentRound; i++)
             {
-                Debug.Log("i = " + i);
-                int randomSpawnIndex = Random.Range(0, spawners.Length);
-                Debug.Log(randomSpawnIndex + " RandomSpawnIndex " + spawners.Length);
-
-                //Photon network instantiation or normal one
-                if (PhotonNetwork.InRoom)
-                    InstantiateZombie(true, randomSpawnIndex);
-                else
-                    InstantiateZombie(false, randomSpawnIndex);
+                int idx = Random.Range(0, spawners.Length);
+                InstantiateZombie(false, idx);
             }
         }
     }
+
     IEnumerator ShowEror()
     {
         erorBoss.SetActive(true);
         yield return new WaitForSeconds(3f);
         erorBoss.SetActive(false);
-
     }
+
     public void InstantiateZombie(bool isOnline, int spawnIndex)
     {
-        if (isOnline)
-        {
-            //Instantiate a zombie in photon network
-            //Add this game manager to the zombie
-            GameObject onlineEnemy = PhotonNetwork.Instantiate("Zombie", spawners[spawnIndex].transform.position,
-            Quaternion.identity);
-            if (onlineEnemy != null)
-                onlineEnemy.GetComponent<ZombieManager>().gameManager = this;
-        }
-        else
-        {
-            //Normal instantiation of the zombie if we are not online
-            GameObject enemy = Instantiate(Resources.Load("Zombie"), spawners[spawnIndex].transform.position,
-            Quaternion.identity) as GameObject;
-            if (enemy != null)
-                enemy.GetComponent<ZombieManager>().gameManager = this;
-        }
+        GameObject enemy = Instantiate(zombiePrefab, spawners[spawnIndex].transform.position, Quaternion.identity);
+        if (enemy) enemy.GetComponent<ZombieManager>().gameManager = this;
     }
-    public void InstantiateZombieEnenmy(bool isOnline, int spawnIndex , GameObject[] spawners)
+
+    public void InstantiateZombieEnenmy(bool isOnline, int spawnIndex, GameObject[] spawnerArray)
     {
-        if (isOnline)
-        {
-            //Instantiate a zombie in photon network
-            //Add this game manager to the zombie
-            GameObject onlineEnemy = PhotonNetwork.Instantiate("Zombie", spawners[spawnIndex].transform.position,
-            Quaternion.identity);
-            if (onlineEnemy != null)
-                onlineEnemy.GetComponent<ZombieManager>().gameManager = this;
-        }
-        else
-        {
-            //Normal instantiation of the zombie if we are not online
-            GameObject enemy = Instantiate(Resources.Load("Zombie"), spawners[spawnIndex].transform.position,
-            Quaternion.identity) as GameObject;
-            if (enemy != null)
-                enemy.GetComponent<ZombieManager>().gameManager = this;
-        }
+        GameObject enemy = Instantiate(zombiePrefab, spawnerArray[spawnIndex].transform.position, Quaternion.identity);
+        if (enemy) enemy.GetComponent<ZombieManager>().gameManager = this;
     }
+
     public void InstantiateZombieBoss(bool isOnline, int spawnIndex)
     {
-        if (isOnline)
+        GameObject boss = Instantiate(Resources.Load("Boss"), spawnersBoss[spawnIndex].transform.position, Quaternion.identity) as GameObject;
+        if (boss)
         {
-            //Instantiate a zombie in photon network
-            //Add this game manager to the zombie
-            GameObject onlineEnemy = PhotonNetwork.Instantiate("Boss", spawnersBoss[spawnIndex].transform.position,
-           
-            Quaternion.identity);
-            if (onlineEnemy != null)
-                onlineEnemy.GetComponent<ZombieManager>().gameManager = this;
-            onlineEnemy.GetComponent<ZombieManager>().maxHealth = 1000 * numberSpawnBoss;
-            
-        }
-        else
-        {
-            //Normal instantiation of the zombie if we are not online
-            GameObject enemy = Instantiate(Resources.Load("Boss"), spawnersBoss[spawnIndex].transform.position,
-            Quaternion.identity) as GameObject;
-            if (enemy != null)
-                enemy.GetComponent<ZombieManager>().gameManager = this;
-            enemy.GetComponent<ZombieManager>().maxHealth = 1000 * numberSpawnBoss;
+            var zm = boss.GetComponent<ZombieManager>();
+            zm.gameManager = this;
+            zm.maxHealth = 1000 * numberSpawnBoss;
         }
     }
 
-    //TODO: Change round animation
     public void LookForEnemies()
     {
-        GameObject[] enemies = GameObject.FindGameObjectsWithTag("Enemy");
-        bool areEnemiesAlive = false;
-        foreach (GameObject enemy in enemies)
+        var enemies = GameObject.FindGameObjectsWithTag("Enemy");
+        foreach (var enemy in enemies)
         {
-            ZombieManager zombieManager = enemy.GetComponent<ZombieManager>();
-            if (zombieManager != null && zombieManager.isAlive)
-                areEnemiesAlive = true;
+            var zm = enemy.GetComponent<ZombieManager>();
+            if (zm != null && zm.isAlive)
+                return;
         }
-
-        if (!areEnemiesAlive)
-        {
-            Debug.Log("No more enemies alive " + isOnlineMasterAndMine + "inRoom: " + PhotonNetwork.InRoom
-            + " isMaster: " + PhotonNetwork.IsMasterClient + " isMine " + photonView.IsMine);
-            if (!PhotonNetwork.InRoom || (isOnlineMasterAndMine))
-                StartCoroutine(StartNextRound());
-        }
-
+        StartCoroutine(StartNextRound());
     }
-
     public void GameOver()
     {
-        if (!PhotonNetwork.InRoom)
-        {
-            currentLocalGameState = GameState.gameOver;
-            StartCoroutine(FadeInOrOutPanel(gameOverPanel, 2, true, true));
-
-        }
-        StartCoroutine(FadeInOrOutPanel(gameOverPanel, 2, true, true));
+        currentLocalGameState = GameState.gameOver;
+        StartCoroutine(FadeInOrOutPanel(gameOverPanel, 2f, true, true));
         roundsSurvivedText.text = $"ROUNDS SURVIVED: {currentRound}";
     }
 
     IEnumerator FadeInOrOutPanel(GameObject panel, float time, bool fadeIn, bool stopTime)
     {
-        Debug.Log("FadeInOrOut");
-        CanvasGroup cg = panel.GetComponent<CanvasGroup>();
+        var cg = panel.GetComponent<CanvasGroup>();
         cg.gameObject.SetActive(true);
 
         if (fadeIn)
-        {
-            while (cg.alpha < 1)
-            {
-                cg.alpha += Time.deltaTime / time;
-                yield return null;
-            }
-        }
-        if (!fadeIn)
-        {
-            while (cg.alpha > 0)
-            {
-                cg.alpha -= Time.deltaTime / time;
-                yield return null;
-            }
-        }
+            while (cg.alpha < 1f) { cg.alpha += Time.deltaTime / time; yield return null; }
+        else
+            while (cg.alpha > 0f) { cg.alpha -= Time.deltaTime / time; yield return null; }
 
         if (stopTime)
         {
-            if (!PhotonNetwork.InRoom)
-                Time.timeScale = 0;
+            Time.timeScale = 0f;
             Cursor.lockState = CursorLockMode.None;
         }
     }
 
     public void Restart()
     {
-
-        Time.timeScale = 1;
+        Time.timeScale = 1f;
         currentLocalGameState = GameState.pause;
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
     }
 
     public void GoToMenu()
     {
-        if (!PhotonNetwork.InRoom)
-        {
-            Time.timeScale = 1;
-        }
-        //PhotonNetwork.LeaveRoom();
+        Time.timeScale = 1f;
         currentLocalGameState = GameState.menu;
-        SceneManager.LoadScene(menuScene);    
+        SceneManager.LoadScene(menuScene);
     }
+
     void Pause()
     {
         Cursor.lockState = CursorLockMode.None;
         currentLocalGameState = GameState.pause;
-        if (!PhotonNetwork.InRoom)
-        {
-            Time.timeScale = 0;
-        }
+        Time.timeScale = 0f;
         pausePanel.SetActive(true);
     }
+
+
     public void Shop()
     {
         Cursor.lockState = CursorLockMode.None;
         currentLocalGameState = GameState.shop;
-        if (!PhotonNetwork.InRoom)
-        {
-            Time.timeScale = 0;
-        }
+        Time.timeScale = 0f;
     }
+
     public void Resume()
     {
         Cursor.lockState = CursorLockMode.Locked;
         currentLocalGameState = GameState.inGame;
-        Time.timeScale = 1;
+        Time.timeScale = 1f;
         pausePanel.SetActive(false);
     }
+
     public void QuitGame()
     {
         Application.Quit();
     }
 
-    [PunRPC]
     void DestroyPlayerGO()
     {
-        Destroy(this.gameObject);
-    }
-    public override void OnPlayerPropertiesUpdate(Player targetPlayer, Hashtable changedProps)
-    {
-        if (photonView.IsMine && changedProps["currentRound"] != null)
-            SetRound((int)changedProps["currentRound"]);
-    }
-    public override void OnPlayerLeftRoom(Player otherPlayer)
-    {
-        if (otherPlayer.IsLocal) // Chỉ xử lý nếu chính mình rời phòng
-        {
-            if (PhotonNetwork.CurrentRoom.PlayerCount > 1) // Nếu vẫn còn người chơi khác
-            {
-                GameObject playerObject = GameObject.FindWithTag("Player"); // Tìm Player Object
-                if (playerObject != null)
-                {
-                    PhotonView playerPhotonView = playerObject.GetComponent<PhotonView>();
-                    if (playerPhotonView != null && playerPhotonView.IsMine)
-                    {
-                        PhotonNetwork.Destroy(playerObject); // Chỉ xóa Player nếu còn người khác trong phòng
-                    }
-                }
-            }
-            else
-            {
-                Debug.Log("Phòng trống, chỉ rời phòng mà không xóa Player.");
-            }
-        }
-    }
-
-
-    public override void OnMasterClientSwitched(Player newMasterClient)
-    {
-        if (PhotonNetwork.IsMasterClient)
-        {
-            LookForEnemies();
-        }
+        Destroy(gameObject);
     }
 }
-
-

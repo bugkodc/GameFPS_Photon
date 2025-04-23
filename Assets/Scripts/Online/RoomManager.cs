@@ -2,15 +2,15 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using Photon.Pun;
-/// <summary>
-/// Quản lý việc instantiate nhân vật sau khi vào phòng và load scene.
-/// </summary>
-public class RoomManager : MonoBehaviourPunCallbacks
-{
 
-    public static RoomManager roomManager;
-    public bool isMobi = false;
+/// <summary>
+/// RoomManager: Quản lý singleton cho phòng và sinh người chơi.
+/// RoomManager: Manages the room singleton and player instantiation.
+/// </summary>
+public class RoomManager : MonoBehaviour
+{
+    [Header("Singleton")]
+    public static RoomManager roomManager;  
 
     private void Awake()
     {
@@ -23,46 +23,18 @@ public class RoomManager : MonoBehaviourPunCallbacks
             Destroy(gameObject);
         }
     }
+    private void Start()
+    {
+        InstantiatePlayer();
+    }
+    private void InstantiatePlayer()
+    {
+        Vector3 playerSpawnPosition = new Vector3(
+            Random.Range(-3f, 3f),
+            2f,
+            Random.Range(-3f, 3f)
+        );
 
-    override public void OnEnable()
-    {
-        SceneManager.sceneLoaded += InstantiatePlayer;
-    }
-    override public void OnDisable()
-    {
-        SceneManager.sceneLoaded -= InstantiatePlayer;
-    }
-    void OnDestroy()
-    {
-        SceneManager.sceneLoaded -= InstantiatePlayer;
-    }
-
-    void InstantiatePlayer(Scene scene, LoadSceneMode loadSceneMode)
-    {
-        Vector3 playerSpawnPosition = new Vector3(Random.Range(-3, 3), 2, Random.Range(-3, 3));
-        // Chỉ spawn nhân vật cho chính client này
-        if (PhotonNetwork.LocalPlayer.IsLocal && PhotonNetwork.InRoom)
-        {
-            if (isMobi)
-            {
-                PhotonNetwork.Instantiate("PlayerMobile", playerSpawnPosition, Quaternion.identity);
-            }
-            else
-            {
-                PhotonNetwork.Instantiate("Player", playerSpawnPosition, Quaternion.identity);
-            }
-        }
-        else
-        {
-            // Nếu không kết nối Photon thì dùng Instantiate thường
-            if (isMobi)
-            {
-                Instantiate(Resources.Load("PlayerMobile"), playerSpawnPosition, Quaternion.identity);
-            }
-            else
-            {
-                Instantiate(Resources.Load("Player"), playerSpawnPosition, Quaternion.identity);
-            }
-        }
+        Instantiate(Resources.Load("Player"), playerSpawnPosition, Quaternion.identity);
     }
 }

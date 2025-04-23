@@ -1,121 +1,103 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
-using Photon.Pun;
 
-
+/// <summary>
+/// ZombieManager: Quản lý sinh lực, hiệu ứng UI, âm thanh và chết cho zombie hoặc boss.
+/// ZombieManager: Manages health, UI effects, audio growls, and death behavior for zombies or bosses.
+/// </summary>
 public class ZombieManager : MonoBehaviour
 {
+    [Header("Health Settings")]
+    public float currentHealth;               
+    [SerializeField] public float maxHealth;  
+    public bool isAlive;                     
 
-    public float currentHealth;
-    [SerializeField] public float maxHealth;
-    Collider _collider;
-    public bool isAlive;
-    [SerializeField] Slider HPSlider;
-    ZombieController zombieController;
-    BossController bossController;
-    public bool isZoombie;
-    [SerializeField] AudioClip[] growlClips;
-    AudioSource audioSource;
-    float CDGrowlTime = 2;
-    float counter = 0;
+    [Header("UI References")]
+    [SerializeField] private Slider HPSlider; 
 
+    [Header("AI Controllers")]
+    private ZombieController zombieController; 
+    private BossController bossController;     
+    public bool isZoombie;                   
 
-    public GameManager gameManager;
+    [Header("Audio Settings")]
+    [SerializeField] private AudioClip[] growlClips; 
+    private AudioSource audioSource;                
+    [SerializeField] private float CDGrowlTime = 2f;
+    private float counter = 0f;                   
 
-    //Animations
-    public Animator animator;
-    string dieAnimationTrigger = "isDead";
+    [Header("References")]
+    public GameManager gameManager;            
+    private Collider _collider;                 
+
+    [Header("Animation")]
+    [SerializeField] private Animator animator; 
+    private readonly string dieAnimationTrigger = "isDead";
     void Start()
     {
         if (isZoombie)
-        {
             zombieController = GetComponent<ZombieController>();
-        }
         else
-        {
             bossController = GetComponent<BossController>();
-        }
+
         currentHealth = maxHealth;
         isAlive = true;
         HPSlider.value = currentHealth / maxHealth;
+
         audioSource = GetComponent<AudioSource>();
         _collider = GetComponent<Collider>();
     }
+
     private void Update()
     {
-        if (PhotonNetwork.InRoom)
-        {
-            if (PhotonNetwork.IsMasterClient)
-            {
-                if (gameManager.CurrentLocalGameState == GameState.inGame)
-                {
-                    GrowlAndRotateZombie();
-                }
-            }
-        }
-        else
-        {
-            if (gameManager.CurrentLocalGameState == GameState.inGame)
-            {
-                GrowlAndRotateZombie();
-            }
-        }
+        if (gameManager.CurrentLocalGameState == GameState.inGame)
+            GrowlAndRotateZombie();
     }
-    void GrowlAndRotateZombie()
+
+    private void GrowlAndRotateZombie()
     {
-        if (isZoombie)
-        {
-            HPSlider.transform.LookAt(zombieController.playerTarget.transform);
-        }
-        else
-        {
-            HPSlider.transform.LookAt(bossController.playerTarget.transform);
-        }
+        var targetTransform = isZoombie
+            ? zombieController.playerTarget.transform
+            : bossController.playerTarget.transform;
+
+        HPSlider.transform.LookAt(targetTransform);
 
         if (counter >= CDGrowlTime && !audioSource.isPlaying && isAlive)
-        {
             Growl();
-        }
+
         counter += Time.deltaTime;
     }
-
-    // Start is called before the first frame update
-
-    [PunRPC]
-    public void TakeDamage(float damageAmmount)
+    public void TakeDamage(float damageAmount)
     {
-        currentHealth -= damageAmmount;
-        HPSlider.value = (float)currentHealth / (float)maxHealth;
-        if (currentHealth <= 0 && isAlive)
+        currentHealth -= damageAmount;
+        HPSlider.value = currentHealth / maxHealth;
+
+        if (currentHealth <= 0f && isAlive)
             Die();
+    }
 
-    }
-    [PunRPC]
-    public void AddHealth(float Health)
+    public void AddHealth(float amount)
     {
-        currentHealth += Health;
-        if(currentHealth > maxHealth) 
-            currentHealth = maxHealth;
-        HPSlider.value = (float)currentHealth / (float)maxHealth;
+        currentHealth = Mathf.Min(currentHealth + amount, maxHealth);
+        HPSlider.value = currentHealth / maxHealth;
     }
+
     public void Die()
     {
         isAlive = false;
         HPSlider.gameObject.SetActive(false);
         animator.SetTrigger(dieAnimationTrigger);
         _collider.enabled = false;
-        if ((PhotonNetwork.IsMasterClient && PhotonNetwork.InRoom) || !PhotonNetwork.InRoom)
-            gameManager.LookForEnemies();
-        Destroy(gameObject, 3);
+        gameManager.LookForEnemies();
+        Destroy(gameObject, 3f);
     }
-    void Growl()
+
+    private void Growl()
     {
         audioSource.clip = growlClips[Random.Range(0, growlClips.Length)];
         audioSource.Play();
-        counter = 0;
+        counter = 0f;
     }
-
-
 }

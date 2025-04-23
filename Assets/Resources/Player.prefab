@@ -263,7 +263,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &3665596413193647660
 RectTransform:
   m_ObjectHideFlags: 0
@@ -4721,11 +4721,7 @@ GameObject:
   - component: {fileID: 3868745692818420388}
   - component: {fileID: 3868745692818420389}
   - component: {fileID: 936253686832555922}
-  - component: {fileID: 2619255381216889689}
-  - component: {fileID: 1604364841340490184}
-  - component: {fileID: 2678441400829659767}
   - component: {fileID: 7437674409259017059}
-  - component: {fileID: 8780168641978279876}
   m_Layer: 2
   m_Name: Player
   m_TagString: Player
@@ -4795,7 +4791,6 @@ MonoBehaviour:
   groundLayer:
     serializedVersion: 2
     m_Bits: 8
-  photonView: {fileID: 2619255381216889689}
   normalSpeed: 8
   runSpeed: 12
   gravity: -18
@@ -4826,67 +4821,12 @@ MonoBehaviour:
   pointsPopupStartPoint: {fileID: 2946605291939177877}
   cameraShake: {fileID: 8198275870125664955}
   gameManager: {fileID: 4338560955155590290}
-  photonView: {fileID: 2619255381216889689}
-  recorder: {fileID: 0}
   canvasParrent: {fileID: 0}
   bob: {fileID: 2247152336178455755}
   capsule: {fileID: 8425105290730913593}
   Root: {fileID: 473427538955060178}
   weaponHolder: {fileID: 1243986291160104326}
   damagedBlinkTime: 0.5
---- !u!114 &2619255381216889689
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6822586073637702738}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: aa584fbee541324448dd18d8409c7a41, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  ObservedComponentsFoldoutOpen: 1
-  Group: 0
-  prefixField: -1
-  Synchronization: 3
-  OwnershipTransfer: 0
-  observableSearch: 2
-  ObservedComponents:
-  - {fileID: 1604364841340490184}
-  - {fileID: 186724242391161991}
-  - {fileID: 1496863001563688863}
-  sceneViewId: 0
-  InstantiationId: 0
-  isRuntimeInstantiated: 0
---- !u!114 &1604364841340490184
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6822586073637702738}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 627855c7f81362d41938ffe0b1475957, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_SynchronizePosition: 1
-  m_SynchronizeRotation: 1
-  m_SynchronizeScale: 0
-  m_UseLocal: 1
---- !u!114 &2678441400829659767
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6822586073637702738}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 126494ae2a10a34499272ed97a6c9f5d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!82 &7437674409259017059
 AudioSource:
   m_ObjectHideFlags: 0
@@ -4983,24 +4923,6 @@ AudioSource:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
---- !u!114 &8780168641978279876
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6822586073637702738}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: dd7fea91fe63f4e1b884ef1e16a975c3, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  playDelayConfig:
-    Low: 200
-    High: 200
-    Max: 1000
-    SpeedUpPerc: 5
-  restartOnDeviceChange: 1
 --- !u!1 &6934767784928787298
 GameObject:
   m_ObjectHideFlags: 0
@@ -5077,8 +4999,6 @@ GameObject:
   - component: {fileID: 4381452422145935933}
   - component: {fileID: 1365765190095842442}
   - component: {fileID: 7216361210430022378}
-  - component: {fileID: 186724242391161991}
-  - component: {fileID: 1496863001563688863}
   m_Layer: 2
   m_Name: Bob
   m_TagString: Untagged
@@ -5121,7 +5041,6 @@ MonoBehaviour:
   playerTransform: {fileID: 6835297398406708624}
   mouseSensitivity: 100
   gameManager: {fileID: 4338560955155590290}
-  photonView: {fileID: 2619255381216889689}
   _camera: {fileID: 1922316889535836618}
 --- !u!95 &1365765190095842442
 Animator:
@@ -5162,65 +5081,6 @@ MonoBehaviour:
   zombieController: {fileID: 0}
   bossController: {fileID: 0}
   isZoombie: 0
---- !u!114 &186724242391161991
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7158174193473220482}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 627855c7f81362d41938ffe0b1475957, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_SynchronizePosition: 1
-  m_SynchronizeRotation: 1
-  m_SynchronizeScale: 0
-  m_UseLocal: 1
---- !u!114 &1496863001563688863
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7158174193473220482}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9b8c4a61274f60b4ea5fb4299cfdbf14, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  ShowLayerWeightsInspector: 1
-  ShowParameterInspector: 1
-  m_SynchronizeParameters:
-  - Type: 4
-    SynchronizeType: 1
-    Name: shoot
-  - Type: 4
-    SynchronizeType: 1
-    Name: isAiming
-  - Type: 4
-    SynchronizeType: 1
-    Name: isReloading
-  - Type: 9
-    SynchronizeType: 1
-    Name: isUsingPistol
-  - Type: 9
-    SynchronizeType: 1
-    Name: isUsingRifle
-  m_SynchronizeLayers:
-  - SynchronizeType: 1
-    LayerIndex: 0
-  - SynchronizeType: 1
-    LayerIndex: 1
-  - SynchronizeType: 1
-    LayerIndex: 2
-  - SynchronizeType: 1
-    LayerIndex: 3
-  - SynchronizeType: 1
-    LayerIndex: 4
-  - SynchronizeType: 0
-    LayerIndex: 5
 --- !u!1 &7268165724632295308
 GameObject:
   m_ObjectHideFlags: 0
@@ -5916,16 +5776,6 @@ PrefabInstance:
       objectReference: {fileID: 5186473058017610251}
     - target: {fileID: 3568458309585931822, guid: 5eec71d38198f384bb780d1d615ad23b,
         type: 3}
-      propertyPath: photonView
-      value: 
-      objectReference: {fileID: 2619255381216889689}
-    - target: {fileID: 3568458309585931822, guid: 5eec71d38198f384bb780d1d615ad23b,
-        type: 3}
-      propertyPath: _photonView
-      value: 
-      objectReference: {fileID: 2619255381216889689}
-    - target: {fileID: 3568458309585931822, guid: 5eec71d38198f384bb780d1d615ad23b,
-        type: 3}
       propertyPath: muteRecorder
       value: 
       objectReference: {fileID: 3944544379138602686}
@@ -6157,11 +6007,6 @@ PrefabInstance:
       objectReference: {fileID: 7523999456139260335}
     - target: {fileID: 2112564336337386831, guid: b1a65556083c69e45b08a4893a6331de,
         type: 3}
-      propertyPath: photonView
-      value: 
-      objectReference: {fileID: 2619255381216889689}
-    - target: {fileID: 2112564336337386831, guid: b1a65556083c69e45b08a4893a6331de,
-        type: 3}
       propertyPath: cameraShake
       value: 
       objectReference: {fileID: 8198275870125664955}
@@ -6349,11 +6194,6 @@ PrefabInstance:
       objectReference: {fileID: 1829994775732684811}
     - target: {fileID: 264150896629405790, guid: c71c805536c78694c95347ba2c57c816,
         type: 3}
-      propertyPath: photonView
-      value: 
-      objectReference: {fileID: 2619255381216889689}
-    - target: {fileID: 264150896629405790, guid: c71c805536c78694c95347ba2c57c816,
-        type: 3}
       propertyPath: cameraShake
       value: 
       objectReference: {fileID: 8198275870125664955}
@@ -6418,11 +6258,6 @@ PrefabInstance:
       propertyPath: flashShot
       value: 
       objectReference: {fileID: 4088997046070579654}
-    - target: {fileID: 2583401651768307212, guid: c71c805536c78694c95347ba2c57c816,
-        type: 3}
-      propertyPath: photonView
-      value: 
-      objectReference: {fileID: 2619255381216889689}
     - target: {fileID: 2583401651768307212, guid: c71c805536c78694c95347ba2c57c816,
         type: 3}
       propertyPath: cameraShake
@@ -6666,10 +6501,6 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 1829994775732684811}
     - target: {fileID: 584212451, guid: c531fb6335485f241b44171018bbd9a0, type: 3}
-      propertyPath: photonView
-      value: 
-      objectReference: {fileID: 2619255381216889689}
-    - target: {fileID: 584212451, guid: c531fb6335485f241b44171018bbd9a0, type: 3}
       propertyPath: cameraShake
       value: 
       objectReference: {fileID: 8198275870125664955}
@@ -6789,11 +6620,6 @@ PrefabInstance:
       propertyPath: hitCross
       value: 
       objectReference: {fileID: 1829994775732684811}
-    - target: {fileID: 812239382011541778, guid: 2276b8f19fb35664681a561d46006885,
-        type: 3}
-      propertyPath: photonView
-      value: 
-      objectReference: {fileID: 2619255381216889689}
     - target: {fileID: 812239382011541778, guid: 2276b8f19fb35664681a561d46006885,
         type: 3}
       propertyPath: cameraShake
@@ -6918,11 +6744,6 @@ PrefabInstance:
       propertyPath: hitCross
       value: 
       objectReference: {fileID: 1829994775732684811}
-    - target: {fileID: 2106907521089985004, guid: 77568649a3d50bd41a1f193c6c4bdfff,
-        type: 3}
-      propertyPath: photonView
-      value: 
-      objectReference: {fileID: 2619255381216889689}
     - target: {fileID: 2106907521089985004, guid: 77568649a3d50bd41a1f193c6c4bdfff,
         type: 3}
       propertyPath: cameraShake

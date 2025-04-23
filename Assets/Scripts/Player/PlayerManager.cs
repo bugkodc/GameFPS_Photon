@@ -1,16 +1,18 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
-using System.Linq;
-using Photon.Pun;
-using Unity.Mathematics;
-using Photon.Voice.Unity;
-using static UnityEditor.Recorder.OutputPath;
+using UnityEngine.SceneManagement;
 
+/// <summary>
+/// PlayerManager: Quản lý sức khỏe, điểm, vũ khí và các tương tác của người chơi.
+/// PlayerManager: Manages player health, points, weapons, and interactions.
+/// </summary>
 public class PlayerManager : MonoBehaviour
 {
+    [Header("Singleton")]
     public static PlayerManager LocalPlayerInstance;
 
     [Header("UI References")]
@@ -20,8 +22,8 @@ public class PlayerManager : MonoBehaviour
     [SerializeField] private CanvasGroup takeDamageCG;
 
     [Header("Health Settings")]
-    public float currentHealth = 100;
-    public float maximumHealth = 100;
+    public float currentHealth = 100f;
+    public float maximumHealth = 100f;
     public bool isAlive;
 
     [Header("Points")]
@@ -32,178 +34,118 @@ public class PlayerManager : MonoBehaviour
     [Header("References")]
     [SerializeField] private CameraShake cameraShake;
     [SerializeField] public GameManager gameManager;
-    [SerializeField] public PhotonView photonView;
-    [SerializeField] private Recorder recorder;
-    [SerializeField] public GameObject canvasParrent;
+    [SerializeField] public GameObject canvasParent;
     [SerializeField] public GameObject bob;
     [SerializeField] public GameObject capsule;
     [SerializeField] public GameObject Root;
+
     [Header("Weapon System")]
     [SerializeField] private GameObject weaponHolder;
     private WeaponController currentWeapon;
     private List<int> weaponsAvailableIndexes = new List<int>();
     private int currentWeaponIndex;
 
+    [Header("Effect Settings")]
+    [SerializeField] private float damagedBlinkTime = 0.5f;
+
     private VendingMachine vendingMachine;
     private bool isRecorder = false;
 
-    [Header("Effect Settings")]
-    [SerializeField] private float damagedBlinkTime = 0.5f;
-    private void Awake()
-    {
-        if (photonView.IsMine && PhotonNetwork.InRoom)
-        {
-            LocalPlayerInstance = this;
-        }
-        else if (!PhotonNetwork.InRoom)
-        {
-            LocalPlayerInstance = this;
-        }
-    }
     void Start()
     {
-        // Setup initial weapon (pistol)
         currentWeaponIndex = 0;
         currentWeapon = weaponHolder.transform.GetChild(currentWeaponIndex).GetComponent<WeaponController>();
         SetWeaponAvailable(WeaponType.pistol);
-
-        // Health & Points
         currentHealth = maximumHealth;
         healthSlider.value = 1f;
         isAlive = true;
         currentPoints = 0;
         pointsText.text = currentPoints.ToString();
-        if (PhotonNetwork.InRoom)
-        {
-            namePlayer.text = photonView.Owner.NickName;
-        }
-        recorder = GameObject.FindGameObjectWithTag("Recorder").GetComponent<Recorder>();
     }
-
-    // Update is called once per frame
     void Update()
     {
-        if (takeDamageCG.alpha > 0)
-        {
+        if (takeDamageCG.alpha > 0f)
             takeDamageCG.alpha -= Time.deltaTime / damagedBlinkTime;
-        }
-
-        if (PhotonNetwork.InRoom && !photonView.IsMine)
-        {
-            return;
-        }
 
         if (gameManager.CurrentLocalGameState == GameState.inGame)
-        {
             CheckMouseWheelInput();
-        }
 
-        //If we are in range of a vending machine check input to open or close it
-        if (vendingMachine != null)
-        {
-            if (Input.GetKeyDown(KeyCode.E) && !vendingMachine.isShopOpen)
-            {
-                Debug.Log(vendingMachine.isShopOpen);
-                vendingMachine.OpenShop(this);
-            }
-            if (gameManager.isMobi)
-            {
-                gameManager.keyE.SetActive(true);
-            }
+        if (vendingMachine != null && Input.GetKeyDown(KeyCode.E) && !vendingMachine.isShopOpen)
+            vendingMachine.OpenShop(this);
 
-        }
-        if (Input.GetKeyDown(KeyCode.T) && !gameManager.isMobi)
-        {
+        if (Input.GetKeyDown(KeyCode.T))
             SetRecorder();
-        }
     }
+
     public void SetRecorder()
     {
-        recorder.RecordingEnabled = isRecorder;
         gameManager.recorder.SetActive(isRecorder);
         gameManager.muteRecorder.SetActive(!isRecorder);
         isRecorder = !isRecorder;
     }
-    public void OpenShopMobi()
-    {
-        vendingMachine.OpenShop(this);
-    }
+
     void UpdateHealth()
     {
-        healthSlider.value = (float)currentHealth / (float)maximumHealth;
+        healthSlider.value = currentHealth / maximumHealth;
     }
 
-    [PunRPC]
     public void TakeDamage(float damage)
     {
-
         cameraShake.StartCoroutine(cameraShake.Shake(0.3f, 0.4f));
-        currentHealth = Mathf.Clamp(currentHealth - damage, 0, maximumHealth);
-        takeDamageCG.alpha = 1;
+        currentHealth = Mathf.Clamp(currentHealth - damage, 0f, maximumHealth);
+        takeDamageCG.alpha = 1f;
         UpdateHealth();
-        if (currentHealth <= 0)
-        {
-            Die();
-        }
+        if (currentHealth <= 0f) Die();
     }
+
+
     void Die()
     {
         if (!isAlive) return;
         isAlive = false;
-        PlayerManager[] players = FindObjectsOfType<PlayerManager>();
-        bool hasAlivePlayer = false;
-        foreach (PlayerManager player in players)
-        {
-            if (player.isAlive)
-            {
-                hasAlivePlayer = true;
-                break;
-            }
-        }
-        if (!hasAlivePlayer)
-        {
-            if (PhotonNetwork.InRoom)
-            {
-                photonView.RPC("GameOverRPC", RpcTarget.All);
-            }
-            GameOverRPC();
-        }
-        OffComponent();
 
+        var players = FindObjectsOfType<PlayerManager>();
+        bool anyAlive = players.Any(p => p.isAlive);
+
+        if (!anyAlive)
+            foreach (var p in players)
+                p.GameOverRPC();
+
+        OffComponent();
     }
+
     void OffComponent()
     {
         bob.SetActive(false);
         capsule.SetActive(false);
         Root.SetActive(false);
-        gameObject.GetComponent<CharacterMovement>().enabled = false;
-        ZombieController[] Zombies = FindAnyObjectByType<ZombieController>;
+        GetComponent<CharacterMovement>().enabled = false;
     }
-    [PunRPC]
-    void GameOverRPC()
+    public void GameOverRPC()
     {
         gameManager.GameOver();
     }
+
     public void UpdatePoints(int pointsUpd)
     {
         currentPoints += pointsUpd;
         pointsText.text = currentPoints.ToString();
-        GameObject popupPoints = Instantiate(pointsPopup, pointsPopupStartPoint.transform.position, pointsText.transform.rotation, pointsPopupStartPoint.transform);
-        TextMeshPro tmproText = popupPoints.GetComponent<TextMeshPro>();
-        if (tmproText) tmproText.SetText($"+ {pointsUpd.ToString()}");
-        StartCoroutine(MoveAndDestroyPointsPopup(popupPoints));
+
+        var popup = Instantiate(pointsPopup, pointsPopupStartPoint.transform.position, pointsText.transform.rotation, pointsPopupStartPoint.transform);
+        var tm = popup.GetComponent<TextMeshPro>();
+        if (tm) tm.SetText($"+{pointsUpd}");
+        StartCoroutine(MoveAndDestroyPointsPopup(popup));
     }
+
     public void Heal(float healAmount)
     {
-        currentHealth += healAmount;
+        currentHealth = Mathf.Clamp(currentHealth + healAmount, 0f, maximumHealth);
         UpdateHealth();
     }
+
     public void Heal(bool max)
     {
-        if (max)
-        {
-            currentHealth = maximumHealth;
-        }
+        if (max) currentHealth = maximumHealth;
         UpdateHealth();
     }
 
@@ -220,102 +162,92 @@ public class PlayerManager : MonoBehaviour
         }
         else if (Input.GetAxis("Mouse ScrollWheel") < 0)
             if (currentWeaponIndex - 1 >= 0)
+            {
                 ChangeWeapon(weaponsAvailableIndexes[currentWeaponIndex - 1]);
+            }
             else
+            {
                 ChangeWeapon(weaponsAvailableIndexes.Last());
-
+            }
     }
 
-    public void ChangeWeapon(int weaponsAvailableIndex)
+    public void ChangeWeapon(int weaponIndex)
     {
-        Debug.Log(currentWeapon + " Current weapon on change weapon");
-        if (currentWeapon.isReloading)
-            currentWeapon.CancelReload();
-
+        if (currentWeapon.isReloading) currentWeapon.CancelReload();
         if (currentWeapon.isScoping)
         {
             currentWeapon.StopScoping();
             currentWeapon.SetAimMode(false);
         }
-        foreach (WeaponController weapon in weaponHolder.GetComponentsInChildren<WeaponController>(true))
+
+        var weapons = weaponHolder.GetComponentsInChildren<WeaponController>(true);
+        for (int i = 0; i < weapons.Length; i++)
         {
-            if (weaponsAvailableIndex == weapon.indexPosition && weapon.isAvailable)
+            var w = weapons[i];
+            bool match = w.indexPosition == weaponIndex && w.isAvailable;
+            w.gameObject.SetActive(match);
+            if (match)
             {
-                weapon.gameObject.SetActive(true);
-                currentWeapon = weapon;
-                currentWeaponIndex = weaponsAvailableIndexes.IndexOf(weaponsAvailableIndex);
-            }
-            else
-            {
-                weapon.gameObject.SetActive(false);
+                currentWeapon = w;
+                currentWeaponIndex = weaponsAvailableIndexes.IndexOf(weaponIndex);
             }
         }
-
     }
 
     void AddWeaponIndexToAvailable(int indexPosition)
     {
-        Debug.Log("Index position addweaponindextoavailable: " + indexPosition);
         if (!weaponsAvailableIndexes.Contains(indexPosition))
             weaponsAvailableIndexes.Add(indexPosition);
     }
-    public void SetWeaponAvailable(WeaponType weaponTypeToSetAvailable)
-    {
 
-        foreach (WeaponController weapon in weaponHolder.GetComponentsInChildren<WeaponController>(true))
+    public void SetWeaponAvailable(WeaponType type)
+    {
+        foreach (var w in weaponHolder.GetComponentsInChildren<WeaponController>(true))
         {
-            Debug.Log(weapon.gameObject.name);
-            if (weapon.weaponSO.weaponType == weaponTypeToSetAvailable)
+            if (w.weaponSO.weaponType == type)
             {
-                weapon.isAvailable = true;
-                weapon.SetIndexPosition();
-                AddWeaponIndexToAvailable(weapon.indexPosition);
-                ChangeWeapon(weapon.indexPosition);
+                w.isAvailable = true;
+                w.SetIndexPosition();
+                AddWeaponIndexToAvailable(w.indexPosition);
+                ChangeWeapon(w.indexPosition);
             }
         }
     }
+
     public void BuyAmmo()
     {
-        foreach (WeaponController weapon in weaponHolder.GetComponentsInChildren<WeaponController>(true))
-        {
-            if (weapon.isAvailable)
-            {
-                weapon.SetAmmoToMax();
-            }
-        }
-
+        foreach (var w in weaponHolder.GetComponentsInChildren<WeaponController>(true))
+            if (w.isAvailable)
+                w.SetAmmoToMax();
     }
+
     private void OnTriggerEnter(Collider other)
     {
-        if (other.tag == "VendingMachine")
+        if (other.CompareTag("VendingMachine"))
         {
-            vendingMachine = other.gameObject.GetComponent<VendingMachine>();
+            vendingMachine = other.GetComponent<VendingMachine>();
             gameManager.vendingMachine = vendingMachine;
         }
     }
+
     private void OnTriggerExit(Collider other)
     {
-        if (other.tag == "VendingMachine")
+        if (other.CompareTag("VendingMachine"))
         {
             vendingMachine = null;
             gameManager.vendingMachine = null;
-            if (gameManager.isMobi)
-            {
-                gameManager.keyE.SetActive(false);
-            }
         }
     }
 
     IEnumerator MoveAndDestroyPointsPopup(GameObject popup)
     {
-        float timer = .3f;
-        while (timer > 0)
+        float timer = 0.3f;
+        while (timer > 0f)
         {
-            popup.transform.position += Vector3.up * Time.deltaTime * .005f;
+            popup.transform.position += Vector3.up * Time.deltaTime * 0.005f;
             timer -= Time.deltaTime;
             yield return null;
         }
-
         Destroy(popup);
     }
 }

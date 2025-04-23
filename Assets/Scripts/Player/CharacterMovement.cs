@@ -1,16 +1,18 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using Photon.Pun;
 
+/// <summary>
+/// CharacterMovement: Handles player movement including walking, running, jumping, and gravity using CharacterController.
+/// </summary>
 public class CharacterMovement : MonoBehaviour
 {
     [Header("References")]
     public CharacterController characterController;
     public Transform isGroundedGO;
     public LayerMask groundLayer;
-    [SerializeField] PhotonView photonView;
-    PlayerManager playerManager;
+
+    private PlayerManager playerManager;
 
     [Header("Speed Settings")]
     public float normalSpeed = 8f;
@@ -20,13 +22,14 @@ public class CharacterMovement : MonoBehaviour
     [Header("Jump & Gravity")]
     public float gravity = -9.81f;
     public float jumpHeight = 3f;
-    [SerializeField] float checkGroundRadius = 0.3f;
+    [SerializeField] private float checkGroundRadius = 0.3f;
 
     private Vector3 direction;
     private Vector3 yVelocity;
     private bool isGrounded;
-    float verticalInput, horizontalInput;
-    
+
+    private float verticalInput;
+    private float horizontalInput;
 
     void Start()
     {
@@ -36,49 +39,35 @@ public class CharacterMovement : MonoBehaviour
 
     void Update()
     {
-        if (PhotonNetwork.InRoom && !photonView.IsMine)
-        {
-            return;
-        }
         isGrounded = Physics.CheckSphere(isGroundedGO.position, checkGroundRadius, groundLayer);
 
-        if (playerManager.isAlive)
-        {
-            SimulateGravity();
+        if (!playerManager.isAlive) return;
 
-            verticalInput = Input.GetAxis("Vertical");
-            horizontalInput = Input.GetAxis("Horizontal");
+        SimulateGravity();
 
-            direction = transform.right * horizontalInput + transform.forward * verticalInput;
+        verticalInput = Input.GetAxis("Vertical");
+        horizontalInput = Input.GetAxis("Horizontal");
 
-            if (Input.GetButtonDown("Run"))
-            {
-                speed = runSpeed;
-            }
-            if (Input.GetButtonUp("Run"))
-            {
-                speed = normalSpeed;
-            }
+        direction = transform.right * horizontalInput + transform.forward * verticalInput;
 
-            characterController.Move(direction * Time.deltaTime * speed);
+        if (Input.GetButtonDown("Run"))
+            speed = runSpeed;
 
-            if (isGrounded && Input.GetButtonDown("Jump"))
-            {
-                yVelocity.y = Mathf.Sqrt(jumpHeight * -2 * gravity);
-            }
+        if (Input.GetButtonUp("Run"))
+            speed = normalSpeed;
 
-            characterController.Move(yVelocity * Time.deltaTime);
-        }
+        characterController.Move(direction * Time.deltaTime * speed);
 
+        if (isGrounded && Input.GetButtonDown("Jump"))
+            yVelocity.y = Mathf.Sqrt(jumpHeight * -2 * gravity);
 
+        characterController.Move(yVelocity * Time.deltaTime);
     }
 
     void SimulateGravity()
     {
         if (isGrounded && yVelocity.y < 0)
-        {
             yVelocity.y = -2;
-        }
 
         yVelocity.y += gravity * Time.deltaTime;
     }

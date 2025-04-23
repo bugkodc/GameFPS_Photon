@@ -2,212 +2,181 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
-using Photon.Pun;
-using Photon.Realtime;
 
-public class BossController : MonoBehaviourPunCallbacks
+/// <summary>
+/// BossController: Controls the behavior of the boss enemy, including movement, attack, spawning, and animation.
+/// BossController: Điều khiển hành vi của boss như di chuyển, tấn công, triệu hồi quái và điều khiển animation.
+/// </summary>
+public class BossController : MonoBehaviour
 {
+    [Header("References")]
     public GameObject playerTarget;
     public GameObject[] playerTargets;
-    Vector3 target;
-    float distanceToPlayer;
-    NavMeshAgent navMeshAgent;
-
-    ZombieManager zombieManager;
     public GameManager gameManager;
-
-    //Animations
-    [SerializeField]
-    Animator animator;
-    string isRunningBool = "isRunning", runningSpeed = "velocity",
-    isAttackingTrigger = "isAttacking";
-
-
-
-    [SerializeField] float rangeToMove = 16;
-
-    //Stats
-    [SerializeField]
-    float attackDamage = 20;
-
-    [SerializeField]
-    float minMovementSpeed = 2, maxMovementSpeed = 4;
-
-    [SerializeField]
-    float minAttackSpeed = 2, maxAttackSpeed = 4;
-    float attackSpeed;
-
-    //Equals to the stopping distance of the nav mesh agent
-    float rangeToAttack;
-
-    float counterAttack;
-    bool isInRangeToMove, isInRangeToAttack, isAlive;
-
-
-    float maxSpeed;
-    NavMeshPath path;
-    [SerializeField] float armLength = 1.5f;
-    int _randomNumberSpawn;
-    int _randomNumberHealth;
     public GameObject[] spawnEnemy;
-    bool isSpawn = false;
     public ParticleSystem VFXHealth;
-    // Start is called before the first frame update
+
+    private NavMeshAgent navMeshAgent;
+    private ZombieManager zombieManager;
+
+    [Header("AI State")]
+    private Vector3 target;
+    private float distanceToPlayer;
+    private bool isInRangeToMove;
+    private bool isInRangeToAttack;
+    private bool isAlive;
+    private bool isSpawn = false;
+    private float counterAttack;
+    private float maxSpeed;
+
+    [Header("Combat Settings")]
+    [SerializeField] private float rangeToMove = 16f;
+    [SerializeField] private float attackDamage = 20f;
+    [SerializeField] private float minMovementSpeed = 2f;
+    [SerializeField] private float maxMovementSpeed = 4f;
+    [SerializeField] private float minAttackSpeed = 2f;
+    [SerializeField] private float maxAttackSpeed = 4f;
+    [SerializeField] private float armLength = 1.5f;
+
+    private float rangeToAttack;
+    private float attackSpeed;
+
+    [Header("Animation Settings")]
+    [SerializeField] private Animator animator;
+    private string isRunningBool = "isRunning";
+    private string runningSpeed = "velocity";
+    private string isAttackingTrigger = "isAttacking";
+
+    [Header("Spawn Settings")]
+    private NavMeshPath path;
+    private int _randomNumberSpawn;
+    private int _randomNumberHealth;
+
     void Start()
     {
         VFXHealth.Stop();
-        zombieManager = gameObject.GetComponent<ZombieManager>();
-        if (PhotonNetwork.InRoom)
-            playerTargets = GameObject.FindGameObjectsWithTag("Player");
-        else
-            playerTarget = GameObject.FindGameObjectWithTag("Player");
+        zombieManager = GetComponent<ZombieManager>();
+        playerTarget = GameObject.FindGameObjectWithTag("Player");
 
         navMeshAgent = GetComponent<NavMeshAgent>();
         navMeshAgent.speed = Random.Range(minMovementSpeed, maxMovementSpeed);
         maxSpeed = navMeshAgent.speed;
-        path = new NavMeshPath();
 
+        path = new NavMeshPath();
         rangeToAttack = navMeshAgent.stoppingDistance + 0.1f;
         attackSpeed = Random.Range(minAttackSpeed, maxAttackSpeed);
+
         _randomNumberSpawn = Random.Range(1, 10);
         Invoke("SpawnEnemy", _randomNumberSpawn);
     }
 
-    // Update is called once per frame
     void Update()
     {
-        //If we are online we check which player is the closest to the zombie
-        if (PhotonNetwork.InRoom)
-        {
-            float minDistanceToPlayer = float.MaxValue;
-            foreach (GameObject player in playerTargets)
-            {
-                if (player != null)
-                {
-                    float distance = Vector3.Distance(transform.position, player.transform.position);
-                    if (distance < minDistanceToPlayer)
-                    {
-                        minDistanceToPlayer = distance;
-                        playerTarget = player;
-                    }
-                }
-            }
-        }
-        //In order to move the enemy even when the player is jumping, we set the target vector y to 0.
         target = new Vector3(playerTarget.transform.position.x, 0, playerTarget.transform.position.z);
-
         distanceToPlayer = Vector3.Distance(transform.position, target);
-        isInRangeToMove = (distanceToPlayer < rangeToMove);
+        isInRangeToMove = distanceToPlayer < rangeToMove;
         isInRangeToAttack = distanceToPlayer <= rangeToAttack;
         isAlive = zombieManager.isAlive;
-        if (isSpawn == false)
+
+        if (!isSpawn)
         {
             Movement();
         }
-        
-        Attack();
 
+        Attack();
         counterAttack += Time.deltaTime;
     }
 
     void Movement()
     {
-
-        //Sets the speed of the animation to the zombie speed
         animator.SetFloat(runningSpeed, navMeshAgent.velocity.magnitude / maxSpeed);
-
-        //Checks if the player is in a reachable place
         navMeshAgent.CalculatePath(target, path);
 
-        //move to the player direction if the player is in a reachable place,
-        //the distance to the player is bigger than the attack range and lower than the moveRange,
-        //and the zombie is not dead.
-            if (isInRangeToMove && path.status == NavMeshPathStatus.PathComplete &&
-            !isInRangeToAttack && isAlive)
-            {
-                animator.SetBool(isRunningBool, true);
-                navMeshAgent.SetDestination(target);
-            }
-            else
-            {
-                animator.SetBool(isRunningBool, false);
-                navMeshAgent.SetDestination(transform.position);
-            }
-        }    
+        if (isInRangeToMove && path.status == NavMeshPathStatus.PathComplete && !isInRangeToAttack && isAlive)
+        {
+            animator.SetBool(isRunningBool, true);
+            navMeshAgent.SetDestination(target);
+        }
+        else
+        {
+            animator.SetBool(isRunningBool, false);
+            navMeshAgent.SetDestination(transform.position);
+        }
+    }
+
     void Attack()
     {
         if (isInRangeToAttack && isAlive)
         {
-            //If is in range to attack we need to manually rotate our enemy to face the player
             FaceTarget();
 
             if (counterAttack >= attackSpeed)
             {
                 animator.SetTrigger(isAttackingTrigger);
                 counterAttack = 0;
-                //The damage is made by an event in the animation which calls MakeDamage
             }
         }
     }
+
     void SpawnEnemy()
     {
-        int NumberSpawn = Random.Range(2, 5);
-        for(int i = 0; i < NumberSpawn; i++)
+        int numberSpawn = Random.Range(2, 5);
+
+        for (int i = 0; i < numberSpawn; i++)
         {
-            int ramdomspawn = Random.Range(0, spawnEnemy.Length);
-            spawnEnemy[ramdomspawn].SetActive(true);
-            zombieManager.gameManager.InstantiateZombieEnenmy(PhotonNetwork.InRoom, ramdomspawn, spawnEnemy);
-            
+            int randomSpawn = Random.Range(0, spawnEnemy.Length);
+            spawnEnemy[randomSpawn].SetActive(true);
+            zombieManager.gameManager.InstantiateZombieEnenmy(true, randomSpawn, spawnEnemy);
         }
+
         StartCoroutine(WaitSpawn());
     }
+
     IEnumerator WaitSpawn()
     {
         isSpawn = true;
         _randomNumberHealth = Random.Range(0, 10);
-        if(_randomNumberHealth > 7)
+
+        if (_randomNumberHealth > 7)
         {
             zombieManager.AddHealth(zombieManager.maxHealth / 5);
             StartCoroutine(WaitHeat());
         }
+
         animator.SetBool(isRunningBool, false);
         navMeshAgent.SetDestination(transform.position);
+
         yield return new WaitForSeconds(_randomNumberSpawn);
-        foreach(GameObject spawnPoint in spawnEnemy)
+
+        foreach (GameObject spawnPoint in spawnEnemy)
         {
             spawnPoint.SetActive(false);
         }
+
         isSpawn = false;
         _randomNumberSpawn = Random.Range(1, 10);
         Invoke("SpawnEnemy", _randomNumberSpawn);
     }
+
     IEnumerator WaitHeat()
     {
         VFXHealth.Play();
         yield return new WaitForSeconds(3f);
         VFXHealth.Stop();
     }
+
     void FaceTarget()
     {
         Vector3 lookDirection = (target - transform.position).normalized;
         Quaternion lookRotation = Quaternion.LookRotation(new Vector3(lookDirection.x, 0f, lookDirection.z));
-        transform.rotation = Quaternion.Slerp(this.transform.rotation, lookRotation, Time.deltaTime * 5f);
+        transform.rotation = Quaternion.Slerp(transform.rotation, lookRotation, Time.deltaTime * 5f);
     }
 
-    //It's called when the zombie stretches his arm to attack
     public void MakeDamage()
     {
         if (distanceToPlayer <= rangeToAttack + armLength)
         {
-            if (PhotonNetwork.InRoom)
-                playerTarget.GetComponent<PlayerManager>().photonView.RPC("TakeDamage", RpcTarget.All,
-                attackDamage);
-            else
-                playerTarget.GetComponent<PlayerManager>().TakeDamage(attackDamage);
+            playerTarget.GetComponent<PlayerManager>().TakeDamage(attackDamage);
         }
-    }
-    public override void OnPlayerLeftRoom(Player otherPlayer)
-    {
-        playerTargets = GameObject.FindGameObjectsWithTag("Player");
     }
 }

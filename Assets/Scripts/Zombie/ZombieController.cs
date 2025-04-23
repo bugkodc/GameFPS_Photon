@@ -1,97 +1,72 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
-using Photon.Pun;
-using Photon.Realtime;
 
-public class ZombieController : MonoBehaviourPunCallbacks
+/// <summary>
+/// ZombieController: Điều khiển hành vi di chuyển, tấn công và kiểm tra trạng thái của zombie.
+/// ZombieController: Controls zombie movement, attack behavior, and idle checks.
+/// </summary>
+public class ZombieController : MonoBehaviour
 {
-    public GameObject playerTarget;
-    public GameObject[] playerTargets;
-    Vector3 target;
-    float distanceToPlayer;
-    NavMeshAgent navMeshAgent;
+    [Header("Targeting")]
+    public GameObject playerTarget;             
+    public List<GameObject> playerTargets;       
+    private Vector3 target;                       
+    [Header("Movement Settings")]
+    [SerializeField] private float rangeToMove = 16f;        
+    [SerializeField] private float minMovementSpeed = 2f;   
+    [SerializeField] private float maxMovementSpeed = 4f;  
 
-    ZombieManager zombieManager;
+    [Header("Attack Settings")]
+    [SerializeField] private float minAttackSpeed = 2f;    
+    [SerializeField] private float maxAttackSpeed = 4f;   
+    [SerializeField] private float attackDamage = 20f;      
+    [SerializeField] private float armLength = 1.5f;        
 
-    //Animations
-    [SerializeField]
-    Animator animator;
-    string isRunningBool = "isRunning", runningSpeed = "velocity",
-    isAttackingTrigger = "isAttacking";
+    [Header("Animations")]
+    [SerializeField] private Animator animator;            
+    private readonly string isRunningBool = "isRunning";
+    private readonly string runningSpeedFloat = "velocity";
+    private readonly string isAttackingTrigger = "isAttacking";
 
+    [Header("Runtime Variables")]
+    private NavMeshAgent navMeshAgent;       
+    private NavMeshPath path;                
+    private ZombieManager zombieManager;      
+    private float rangeToAttack;              
+    private float attackSpeed;               
+    private float counterAttack;              
+    private bool isInRangeToMove;            
+    private bool isInRangeToAttack;           
+    private bool isAttacking;                
+    private bool isAlive;                  
+    private float maxSpeed;                  
+    private Vector3 currentPosition;          
 
-
-    [SerializeField] float rangeToMove = 16;
-
-    //Stats
-    [SerializeField]
-    float attackDamage = 20;
-
-    [SerializeField]
-    float minMovementSpeed = 2, maxMovementSpeed = 4;
-
-    [SerializeField]
-    float minAttackSpeed = 2, maxAttackSpeed = 4;
-    float attackSpeed;
-
-    //Equals to the stopping distance of the nav mesh agent
-    float rangeToAttack;
-
-    float counterAttack;
-    bool isInRangeToMove, isInRangeToAttack, isAlive;
-
-    bool isAttacking;
-    float maxSpeed;
-    NavMeshPath path;
-    [SerializeField] float armLength = 1.5f;
-    private Vector3 currentPosition;
-
-    // Start is called before the first frame update
     void Start()
     {
-        zombieManager = gameObject.GetComponent<ZombieManager>();
-        if (PhotonNetwork.InRoom)
-            playerTargets = GameObject.FindGameObjectsWithTag("Player");
-        else
-            playerTarget = GameObject.FindGameObjectWithTag("Player");
+        zombieManager = GetComponent<ZombieManager>();
+        playerTarget = GameObject.FindGameObjectWithTag("Player");
 
         navMeshAgent = GetComponent<NavMeshAgent>();
         navMeshAgent.speed = Random.Range(minMovementSpeed, maxMovementSpeed);
         maxSpeed = navMeshAgent.speed;
+
         path = new NavMeshPath();
         rangeToAttack = navMeshAgent.stoppingDistance + 0.1f;
         attackSpeed = Random.Range(minAttackSpeed, maxAttackSpeed);
-        StartCoroutine("CheckMoveZombie");
 
+        StartCoroutine(CheckMoveZombie());
     }
 
-    // Update is called once per frame
     void Update()
     {
-        //If we are online we check which player is the closest to the zombie
-        if (PhotonNetwork.InRoom)
-        {
-            float minDistanceToPlayer = float.MaxValue;
-            foreach (GameObject player in playerTargets)
-            {
-                if (player != null)
-                {
-                    float distance = Vector3.Distance(transform.position, player.transform.position);
-                    if (distance < minDistanceToPlayer)
-                    {
-                        minDistanceToPlayer = distance;
-                        playerTarget = player;
-                    }
-                }
-            }
-        }
-        //In order to move the enemy even when the player is jumping, we set the target vector y to 0.
-        target = new Vector3(playerTarget.transform.position.x, 0, playerTarget.transform.position.z);
+        // Cập nhật mục tiêu chỉ lấy XZ
+        target = new Vector3(playerTarget.transform.position.x, 0f, playerTarget.transform.position.z);
+        float distanceToPlayer = Vector3.Distance(transform.position, target);
 
-        distanceToPlayer = Vector3.Distance(transform.position, target);
-        isInRangeToMove = (distanceToPlayer < rangeToMove);
+        isInRangeToMove = distanceToPlayer < rangeToMove;
         isInRangeToAttack = distanceToPlayer <= rangeToAttack;
         isAlive = zombieManager.isAlive;
 
@@ -101,28 +76,25 @@ public class ZombieController : MonoBehaviourPunCallbacks
         counterAttack += Time.deltaTime;
     }
 
+
     IEnumerator CheckMoveZombie()
     {
-        currentPosition = gameObject.transform.position;
+        currentPosition = transform.position;
         yield return new WaitForSeconds(5f);
-        if (currentPosition == gameObject.transform.position && !isAttacking)
-        {
-            zombieManager.Die();
-        }
-        else
-        {
-            StartCoroutine("CheckMoveZombie");
-        }
 
+        if (transform.position == currentPosition && !isAttacking)
+            zombieManager.Die();
+        else
+            StartCoroutine(CheckMoveZombie());
     }
+
     void Movement()
     {
-        animator.SetFloat(runningSpeed, navMeshAgent.velocity.magnitude / maxSpeed);
+        animator.SetFloat(runningSpeedFloat, navMeshAgent.velocity.magnitude / maxSpeed);
 
         navMeshAgent.CalculatePath(target, path);
 
-        if (isInRangeToMove && path.status == NavMeshPathStatus.PathComplete &&
-        !isInRangeToAttack && isAlive)
+        if (isAlive && isInRangeToMove && !isInRangeToAttack && path.status == NavMeshPathStatus.PathComplete)
         {
             animator.SetBool(isRunningBool, true);
             navMeshAgent.SetDestination(target);
@@ -133,42 +105,41 @@ public class ZombieController : MonoBehaviourPunCallbacks
             navMeshAgent.SetDestination(transform.position);
         }
     }
+
     void Attack()
     {
-        if (isInRangeToAttack && isAlive)
+        if (isAlive && isInRangeToAttack)
         {
-
             FaceTarget();
-            isAttacking = false;
             if (counterAttack >= attackSpeed)
             {
                 animator.SetTrigger(isAttackingTrigger);
-                counterAttack = 0;
+                counterAttack = 0f;
                 isAttacking = true;
             }
-           
         }
     }
+
     void FaceTarget()
     {
-        Vector3 lookDirection = (target - transform.position).normalized;
-        Quaternion lookRotation = Quaternion.LookRotation(new Vector3(lookDirection.x, 0f, lookDirection.z));
-        transform.rotation = Quaternion.Slerp(this.transform.rotation, lookRotation, Time.deltaTime * 5f);
+        Vector3 dir = (target - transform.position).normalized;
+        Quaternion lookRot = Quaternion.LookRotation(new Vector3(dir.x, 0f, dir.z));
+        transform.rotation = Quaternion.Slerp(transform.rotation, lookRot, Time.deltaTime * 5f);
     }
 
     public void MakeDamage()
     {
-        if (distanceToPlayer <= rangeToAttack + armLength)
-        {
-            if (PhotonNetwork.InRoom)
-                playerTarget.GetComponent<PlayerManager>().photonView.RPC("TakeDamage", RpcTarget.All,
-                attackDamage);
-            else
-                playerTarget.GetComponent<PlayerManager>().TakeDamage(attackDamage);
-        }
+        float dist = Vector3.Distance(transform.position, target);
+        if (dist <= rangeToAttack + armLength)
+            playerTarget.GetComponent<PlayerManager>().TakeDamage(attackDamage);
     }
-    public override void OnPlayerLeftRoom(Player otherPlayer)
+
+    public void RemovePlayer(GameObject playercurrent)
     {
-        playerTargets = GameObject.FindGameObjectsWithTag("Player");
+        if (playerTargets.Contains(playercurrent))
+            playerTargets.Remove(playercurrent);
+
+        if (playerTargets.Count > 0)
+            playerTarget = playerTargets[Random.Range(0, playerTargets.Count)];
     }
 }

@@ -3,19 +3,20 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// Hiển thị dấu "Hit Cross" khi tấn công trúng kẻ địch.
-/// Dấu này sẽ tự động tắt sau một khoảng thời gian.
+/// HitCross: Controls automatic disabling of the hitbox after a delay when enabled.
+/// HitCross: Điều khiển vô hiệu hóa tự động hitbox sau khoảng thời gian khi được kích hoạt.
 /// </summary>
 public class HitCross : MonoBehaviour
 {
-    [SerializeField] private float disableTime = 0.3f;
+    [Header("Settings")]
+    [SerializeField] private float disableTime = 0.3f; 
     private void OnEnable()
     {
         RestartDisableCall();
     }
-    void DisableHitBox()
+    private void DisableHitBox()
     {
-        this.gameObject.SetActive(false);
+        gameObject.SetActive(false);
     }
     public void RestartDisableCall()
     {
@@ -23,5 +24,3 @@ public class HitCross : MonoBehaviour
         Invoke("DisableHitBox", disableTime);
     }
 }
-
-
