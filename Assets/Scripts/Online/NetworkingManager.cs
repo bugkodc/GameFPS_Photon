@@ -8,30 +8,27 @@ using UnityEngine;
 public class NetworkingManager : MonoBehaviourPunCallbacks
 {
     [SerializeField] private MenuManager menuManager;
-    [SerializeField]
-    private GameObject lobbyPanel, mainPanel, usernamePanel,
+    [SerializeField] private GameObject lobbyPanel, mainPanel, usernamePanel,
     usernameInput, RoomIDInput, playerFoundUI, playerFoundHolder, idRoomText, StartButton;
-
     private bool tryingToReconnect = false;
 
     void Start()
     {
         PhotonNetwork.AutomaticallySyncScene = false;
-        Debug.Log("Start - ClientState: " + PhotonNetwork.NetworkClientState);
-
+       // Debug.Log("Start - ClientState: " + PhotonNetwork.NetworkClientState);
         if (!PhotonNetwork.IsConnected || PhotonNetwork.NetworkClientState == ClientState.PeerCreated || PhotonNetwork.NetworkClientState == ClientState.Disconnected)
         {
-            Debug.Log("Chưa connect hoặc đã disconnect, tiến hành connect...");
+            //Debug.Log("Chưa connect hoặc đã disconnect, tiến hành connect...");
             PhotonNetwork.ConnectUsingSettings();
         }
         else if (PhotonNetwork.InRoom)
         {
-            Debug.Log("Đang trong phòng, thoát phòng...");
+            //Debug.Log("Đang trong phòng, thoát phòng...");
             PhotonNetwork.LeaveRoom();
         }
         else if (PhotonNetwork.NetworkClientState == ClientState.ConnectedToMasterServer)
         {
-            Debug.Log("Đã connect MasterServer, sẵn sàng");
+            //Debug.Log("Đã connect MasterServer, sẵn sàng");
         }
     }
 
@@ -44,13 +41,13 @@ public class NetworkingManager : MonoBehaviourPunCallbacks
             yield return null;
         }
 
-        Debug.Log("Thực hiện reconnect...");
+        //Debug.Log("Thực hiện reconnect...");
         PhotonNetwork.ConnectUsingSettings();
     }
 
     public override void OnDisconnected(DisconnectCause cause)
     {
-        Debug.LogWarning($"Đã bị ngắt kết nối: {cause}");
+       // Debug.LogWarning($"Đã bị ngắt kết nối: {cause}");
 
         if (!tryingToReconnect)
         {
@@ -60,7 +57,7 @@ public class NetworkingManager : MonoBehaviourPunCallbacks
 
     public override void OnConnectedToMaster()
     {
-        Debug.Log("Đã kết nối lại Master thành công.");
+        //Debug.Log("Đã kết nối lại Master thành công.");
         tryingToReconnect = false;
     }
 
@@ -98,7 +95,7 @@ public class NetworkingManager : MonoBehaviourPunCallbacks
     {
         if (!PhotonNetwork.IsConnectedAndReady)
         {
-            Debug.LogWarning("Chưa sẵn sàng để join lobby");
+            //Debug.LogWarning("Chưa sẵn sàng để join lobby");
             return;
         }
 
@@ -113,7 +110,7 @@ public class NetworkingManager : MonoBehaviourPunCallbacks
     {
         if (!PhotonNetwork.IsConnectedAndReady)
         {
-            Debug.LogWarning("Chưa sẵn sàng để join room");
+            //Debug.LogWarning("Chưa sẵn sàng để join room");
             return;
         }
 
@@ -126,7 +123,7 @@ public class NetworkingManager : MonoBehaviourPunCallbacks
 
     public override void OnJoinedLobby()
     {
-        Debug.Log("Joined Lobby thành công");
+       // Debug.Log("Joined Lobby thành công");
         JoinOrCreateRoom();
     }
 
@@ -135,7 +132,7 @@ public class NetworkingManager : MonoBehaviourPunCallbacks
         string roomID = RoomIDInput.GetComponent<TMP_InputField>().text;
         if (string.IsNullOrEmpty(roomID))
         {
-            Debug.LogWarning("Room ID không được để trống.");
+           // Debug.LogWarning("Room ID không được để trống.");
             return;
         }
 
@@ -145,7 +142,7 @@ public class NetworkingManager : MonoBehaviourPunCallbacks
 
     public override void OnJoinRandomFailed(short returnCode, string message)
     {
-        Debug.Log("Join random thất bại, tạo phòng mới...");
+       // Debug.Log("Join random thất bại, tạo phòng mới...");
         CreateRoom();
     }
 
@@ -165,13 +162,13 @@ public class NetworkingManager : MonoBehaviourPunCallbacks
 
     public override void OnCreateRoomFailed(short returnCode, string message)
     {
-        Debug.LogError($"Tạo phòng thất bại: {message}");
+       // Debug.LogError($"Tạo phòng thất bại: {message}");
     }
 
     public override void OnJoinedRoom()
     {
         StartButton.SetActive(PhotonNetwork.IsMasterClient);
-        Debug.Log("Đã vào phòng.");
+        //Debug.Log("Đã vào phòng.");
         OpenLobbyScreen();
     }
 
@@ -195,7 +192,7 @@ public class NetworkingManager : MonoBehaviourPunCallbacks
 
     public override void OnMasterClientSwitched(Player newMasterClient)
     {
-        Debug.Log($"Master Client mới: {newMasterClient.NickName}");
+        //Debug.Log($"Master Client mới: {newMasterClient.NickName}");
         StartButton.SetActive(PhotonNetwork.IsMasterClient);
     }
 

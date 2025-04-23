@@ -7,52 +7,44 @@ using Photon.Realtime;
 
 public class BossController : MonoBehaviourPunCallbacks
 {
+
     public GameObject playerTarget;
     public GameObject[] playerTargets;
-    Vector3 target;
-    float distanceToPlayer;
-    NavMeshAgent navMeshAgent;
-
-    ZombieManager zombieManager;
     public GameManager gameManager;
+    public GameObject[] spawnEnemy;
+    public ParticleSystem VFXHealth;
+
+    private Vector3 target;
+    private float distanceToPlayer;
+    private NavMeshAgent navMeshAgent;
+    private ZombieManager zombieManager;
 
     //Animations
-    [SerializeField]
-    Animator animator;
-    string isRunningBool = "isRunning", runningSpeed = "velocity",
-    isAttackingTrigger = "isAttacking";
+    [SerializeField] private Animator animator;
+    private string isRunningBool = "isRunning";
+    private string runningSpeed = "velocity";
+    private string isAttackingTrigger = "isAttacking";
 
+    [SerializeField] private float rangeToMove = 16;
+    [SerializeField] private float attackDamage = 20;
+    [SerializeField] private float minMovementSpeed = 2;
+    [SerializeField] private float maxMovementSpeed = 4;
+    [SerializeField] private float minAttackSpeed = 2;
+    [SerializeField] private float maxAttackSpeed = 4;
+    [SerializeField] private float armLength = 1.5f;
 
+    private float attackSpeed;
+    private float rangeToAttack;
+    private float counterAttack;
+    private bool isInRangeToMove;
+    private bool isInRangeToAttack;
+    private bool isAlive;
+    private float maxSpeed;
+    private NavMeshPath path;
+    private int _randomNumberSpawn;
+    private int _randomNumberHealth;
+    private bool isSpawn = false;
 
-    [SerializeField] float rangeToMove = 16;
-
-    //Stats
-    [SerializeField]
-    float attackDamage = 20;
-
-    [SerializeField]
-    float minMovementSpeed = 2, maxMovementSpeed = 4;
-
-    [SerializeField]
-    float minAttackSpeed = 2, maxAttackSpeed = 4;
-    float attackSpeed;
-
-    //Equals to the stopping distance of the nav mesh agent
-    float rangeToAttack;
-
-    float counterAttack;
-    bool isInRangeToMove, isInRangeToAttack, isAlive;
-
-
-    float maxSpeed;
-    NavMeshPath path;
-    [SerializeField] float armLength = 1.5f;
-    int _randomNumberSpawn;
-    int _randomNumberHealth;
-    public GameObject[] spawnEnemy;
-    bool isSpawn = false;
-    public ParticleSystem VFXHealth;
-    // Start is called before the first frame update
     void Start()
     {
         VFXHealth.Stop();
@@ -73,10 +65,8 @@ public class BossController : MonoBehaviourPunCallbacks
         Invoke("SpawnEnemy", _randomNumberSpawn);
     }
 
-    // Update is called once per frame
     void Update()
     {
-        //If we are online we check which player is the closest to the zombie
         if (PhotonNetwork.InRoom)
         {
             float minDistanceToPlayer = float.MaxValue;
@@ -93,9 +83,8 @@ public class BossController : MonoBehaviourPunCallbacks
                 }
             }
         }
-        //In order to move the enemy even when the player is jumping, we set the target vector y to 0.
-        target = new Vector3(playerTarget.transform.position.x, 0, playerTarget.transform.position.z);
 
+        target = new Vector3(playerTarget.transform.position.x, 0, playerTarget.transform.position.z);
         distanceToPlayer = Vector3.Distance(transform.position, target);
         isInRangeToMove = (distanceToPlayer < rangeToMove);
         isInRangeToAttack = distanceToPlayer <= rangeToAttack;
@@ -104,60 +93,50 @@ public class BossController : MonoBehaviourPunCallbacks
         {
             Movement();
         }
-        
-        Attack();
 
+        Attack();
         counterAttack += Time.deltaTime;
     }
 
     void Movement()
     {
-
-        //Sets the speed of the animation to the zombie speed
         animator.SetFloat(runningSpeed, navMeshAgent.velocity.magnitude / maxSpeed);
-
-        //Checks if the player is in a reachable place
         navMeshAgent.CalculatePath(target, path);
-
-        //move to the player direction if the player is in a reachable place,
-        //the distance to the player is bigger than the attack range and lower than the moveRange,
-        //and the zombie is not dead.
-            if (isInRangeToMove && path.status == NavMeshPathStatus.PathComplete &&
-            !isInRangeToAttack && isAlive)
-            {
-                animator.SetBool(isRunningBool, true);
-                navMeshAgent.SetDestination(target);
-            }
-            else
-            {
-                animator.SetBool(isRunningBool, false);
-                navMeshAgent.SetDestination(transform.position);
-            }
-        }    
+        if (isInRangeToMove && path.status == NavMeshPathStatus.PathComplete &&
+        !isInRangeToAttack && isAlive)
+        {
+            animator.SetBool(isRunningBool, true);
+            navMeshAgent.SetDestination(target);
+        }
+        else
+        {
+            animator.SetBool(isRunningBool, false);
+            navMeshAgent.SetDestination(transform.position);
+        }
+    }
     void Attack()
     {
         if (isInRangeToAttack && isAlive)
         {
-            //If is in range to attack we need to manually rotate our enemy to face the player
+    
             FaceTarget();
 
             if (counterAttack >= attackSpeed)
             {
                 animator.SetTrigger(isAttackingTrigger);
                 counterAttack = 0;
-                //The damage is made by an event in the animation which calls MakeDamage
+                
             }
         }
     }
     void SpawnEnemy()
     {
         int NumberSpawn = Random.Range(2, 5);
-        for(int i = 0; i < NumberSpawn; i++)
+        for (int i = 0; i < NumberSpawn; i++)
         {
             int ramdomspawn = Random.Range(0, spawnEnemy.Length);
             spawnEnemy[ramdomspawn].SetActive(true);
             zombieManager.gameManager.InstantiateZombieEnenmy(PhotonNetwork.InRoom, ramdomspawn, spawnEnemy);
-            
         }
         StartCoroutine(WaitSpawn());
     }
@@ -165,7 +144,7 @@ public class BossController : MonoBehaviourPunCallbacks
     {
         isSpawn = true;
         _randomNumberHealth = Random.Range(0, 10);
-        if(_randomNumberHealth > 7)
+        if (_randomNumberHealth > 7)
         {
             zombieManager.AddHealth(zombieManager.maxHealth / 5);
             StartCoroutine(WaitHeat());
@@ -173,7 +152,7 @@ public class BossController : MonoBehaviourPunCallbacks
         animator.SetBool(isRunningBool, false);
         navMeshAgent.SetDestination(transform.position);
         yield return new WaitForSeconds(_randomNumberSpawn);
-        foreach(GameObject spawnPoint in spawnEnemy)
+        foreach (GameObject spawnPoint in spawnEnemy)
         {
             spawnPoint.SetActive(false);
         }
@@ -193,8 +172,6 @@ public class BossController : MonoBehaviourPunCallbacks
         Quaternion lookRotation = Quaternion.LookRotation(new Vector3(lookDirection.x, 0f, lookDirection.z));
         transform.rotation = Quaternion.Slerp(this.transform.rotation, lookRotation, Time.deltaTime * 5f);
     }
-
-    //It's called when the zombie stretches his arm to attack
     public void MakeDamage()
     {
         if (distanceToPlayer <= rangeToAttack + armLength)

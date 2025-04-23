@@ -4,13 +4,9 @@ using UnityEngine;
 
 public class Heal : MonoBehaviour
 {
-    void Update()
-    {
-
-    }
     private void OnTriggerEnter(Collider other)
     {
-        Debug.Log("Heal");
+       // Debug.Log("Heal");
         if (other.gameObject.CompareTag("Player"))
         {
             PlayerManager playerManager = other.gameObject.GetComponent<PlayerManager>();

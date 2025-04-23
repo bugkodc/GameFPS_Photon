@@ -3,10 +3,6 @@ using System.Collections.Generic;
 using Photon.Pun;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-/// <summary>
-/// Kết nối đến Photon Server ngay khi scene bắt đầu.
-/// Sau khi kết nối, sẽ tự động load scene Menu.
-/// </summary>
 public class ConnectToSever : MonoBehaviourPunCallbacks
 {
     public float loadingTime = 2f;

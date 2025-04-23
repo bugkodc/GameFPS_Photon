@@ -9,8 +9,8 @@ public class CharacterMovement : MonoBehaviour
     public CharacterController characterController;
     public Transform isGroundedGO;
     public LayerMask groundLayer;
-    [SerializeField] PhotonView photonView;
-    PlayerManager playerManager;
+    [SerializeField] private PhotonView photonView;
+    private PlayerManager playerManager;
 
     [Header("Speed Settings")]
     public float normalSpeed = 8f;
@@ -20,12 +20,12 @@ public class CharacterMovement : MonoBehaviour
     [Header("Jump & Gravity")]
     public float gravity = -9.81f;
     public float jumpHeight = 3f;
-    [SerializeField] float checkGroundRadius = 0.3f;
+    [SerializeField] private float checkGroundRadius = 0.3f;
 
     private Vector3 direction;
     private Vector3 yVelocity;
     private bool isGrounded;
-    float verticalInput, horizontalInput;
+    private float verticalInput, horizontalInput;
     
 
     void Start()

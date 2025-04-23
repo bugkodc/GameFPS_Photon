@@ -851,14 +851,6 @@ MonoBehaviour:
   playerTarget: {fileID: 0}
   playerTargets: []
   gameManager: {fileID: 0}
-  animator: {fileID: 2898793812981327159}
-  rangeToMove: 32
-  attackDamage: 20
-  minMovementSpeed: 2
-  maxMovementSpeed: 4
-  minAttackSpeed: 2
-  maxAttackSpeed: 4
-  armLength: 1.5
   spawnEnemy:
   - {fileID: 219929293026521226}
   - {fileID: 8547985787699809730}
@@ -869,6 +861,14 @@ MonoBehaviour:
   - {fileID: 4164869677583016102}
   - {fileID: 249647803985662861}
   VFXHealth: {fileID: 1944332417403702329}
+  animator: {fileID: 2898793812981327159}
+  rangeToMove: 32
+  attackDamage: 20
+  minMovementSpeed: 2
+  maxMovementSpeed: 4
+  minAttackSpeed: 2
+  maxAttackSpeed: 4
+  armLength: 1.5
 --- !u!114 &4279711072626453301
 MonoBehaviour:
   m_ObjectHideFlags: 0

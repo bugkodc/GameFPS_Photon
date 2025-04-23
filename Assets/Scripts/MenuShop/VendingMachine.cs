@@ -5,9 +5,6 @@ using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using Photon.Pun;
 using Photon.Realtime;
-/// <summary>
-/// Quản lý mở shop, chọn item, mua hàng và đồng bộ trạng thái với các client khác.
-/// </summary>
 public class VendingMachine : MonoBehaviourPunCallbacks
 {
     ExitGames.Client.Photon.Hashtable hash = new ExitGames.Client.Photon.Hashtable();
@@ -21,10 +18,12 @@ public class VendingMachine : MonoBehaviourPunCallbacks
     public bool isShopOpen = false;
     public PlayerManager _playerManager;
     public ShopSlot selectedShopSlot;
+    public ShopSlot[] arrayItem;
 
     private void Start()
     {
         eventSystem = EventSystem.current;
+        
     }
     private void OnTriggerEnter(Collider other)
     {
@@ -48,8 +47,11 @@ public class VendingMachine : MonoBehaviourPunCallbacks
 
         gameManager = playerManager.gameObject.GetComponentInChildren<GameManager>();
         _playerManager = playerManager;
-
-        Debug.Log("OpeningShop");
+        foreach (var item in arrayItem)
+        {
+            item.playerManager = _playerManager;
+        }
+        //Debug.Log("OpeningShop");
         shopCanvas.SetActive(true);
         eventSystem.SetSelectedGameObject(firstSelectedButton);
 
@@ -72,7 +74,7 @@ public class VendingMachine : MonoBehaviourPunCallbacks
         }
 
         PhotonNetwork.LocalPlayer.SetCustomProperties(hash);
-        Debug.Log("Close shop");
+       // Debug.Log("Close shop");
 
         shopCanvas.SetActive(false);
         gameManager.Resume();
@@ -118,8 +120,8 @@ public class VendingMachine : MonoBehaviourPunCallbacks
     }
     public void BuyHeal()
     {
-       
-        if (_playerManager && _playerManager.currentPoints >= selectedShopSlot.weaponSO.cost)
+        Item selectedWeaponSO = (Item)selectedShopSlot.itemSO;
+        if (_playerManager && _playerManager.currentPoints >= gameManager.currentRound * 250 + 500)
         {
             _playerManager.Heal(true);
             _playerManager.UpdatePoints(-gameManager.currentRound * 250 + 500);
@@ -128,8 +130,8 @@ public class VendingMachine : MonoBehaviourPunCallbacks
     }
     public void BuyAmmo()
     {
-       
-        if (_playerManager && _playerManager.currentPoints >= selectedShopSlot.weaponSO.cost)
+        Item selectedWeaponSO = (Item)selectedShopSlot.itemSO;
+        if (_playerManager && _playerManager.currentPoints >= gameManager.currentRound * 250 + 500)
         {
             _playerManager.BuyAmmo();
             _playerManager.UpdatePoints(-gameManager.currentRound * 250 + 500);
@@ -143,7 +145,7 @@ public class VendingMachine : MonoBehaviourPunCallbacks
             isShopOpen = (bool)changedProps[isShopOpenKey];
             doText.GetComponent<Text>().text = isShopOpen ? "Shop in use" : "Press E";
 
-            Debug.Log(" isShopOpen = " + isShopOpen);
+           // Debug.Log(" isShopOpen = " + isShopOpen);
         }
     }
 }

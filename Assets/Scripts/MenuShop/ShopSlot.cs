@@ -7,7 +7,7 @@ using UnityEngine.UI;
 public class ShopSlot : MonoBehaviour
 {
     [SerializeField] public WeaponStats weaponSO;
-    [SerializeField] private PlayerManager playerManager;
+    [SerializeField] public PlayerManager playerManager;
     [SerializeField] private VendingMachine vendingMachine;
     [SerializeField] private TextMeshProUGUI costText;
 
@@ -23,19 +23,19 @@ public class ShopSlot : MonoBehaviour
             if(costText && weaponSO) costText.text = weaponSO.cost.ToString();
         
     }
-  /*  private void Update()
+    private void Update()
     {
        if (itemSO.itemType != ItemType.Weapon && playerManager != null)
         {
             CostText();
         }         
-    }*/
+    }
     public void SelectItem()
     {
         vendingMachine.SelectItem(this);
     }
-   /* public void CostText()
+   public void CostText()
     {
         costText.text = (playerManager.gameManager.currentRound * 250 + 500).ToString();   
-    }*/
+    }
 }

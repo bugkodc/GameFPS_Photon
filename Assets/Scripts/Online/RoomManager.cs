@@ -3,9 +3,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using Photon.Pun;
-/// <summary>
-/// Quản lý việc instantiate nhân vật sau khi vào phòng và load scene.
-/// </summary>
 public class RoomManager : MonoBehaviourPunCallbacks
 {
 

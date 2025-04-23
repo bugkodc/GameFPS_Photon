@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class AnimationEventReceive : MonoBehaviour
 {
+
     [SerializeField] private GameObject scopeOverlay;
     [SerializeField] private GameObject sniperGO;
     [SerializeField] private Camera playerCamera;
@@ -25,7 +26,8 @@ public class AnimationEventReceive : MonoBehaviour
     public void ScopeOverlay()
     {
         WeaponController weapon = sniperGO.GetComponent<WeaponController>();
-        if (weapon) weapon.isScoping = true;
+        if (weapon)
+            weapon.isScoping = true;
         scopeOverlay.SetActive(true);
         sniperGO.GetComponent<MeshRenderer>().enabled = false;
         playerCamera.fieldOfView = 15;

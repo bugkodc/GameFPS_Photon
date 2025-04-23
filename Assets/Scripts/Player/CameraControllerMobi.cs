@@ -6,6 +6,7 @@ using UnityEngine;
 public class CameraControllerMobi : MonoBehaviour
 {
     public Transform playerTransform;
+
     [SerializeField] private GameManager gameManager;
     [SerializeField] private PhotonView photonView;
     [SerializeField] private Camera _camera;

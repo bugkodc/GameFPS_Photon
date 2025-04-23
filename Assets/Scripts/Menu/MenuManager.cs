@@ -4,9 +4,6 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using Photon.Pun;
 using Photon.Realtime;
-/// <summary>
-/// Khi chạy game offline sẽ disconnect photon
-/// </summary>
 public class MenuManager : MonoBehaviourPunCallbacks
 {
     [SerializeField] private string sceneGamePlay;

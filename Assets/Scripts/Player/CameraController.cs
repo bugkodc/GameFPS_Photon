@@ -6,16 +6,15 @@ using Photon.Pun;
 public class CameraController : MonoBehaviour
 {
     public Transform playerTransform;
-
-    private float mouseX, mouseY;
-
-    private float xRotation, yRotation;
-
     public float mouseSensitivity = 100;
-    [SerializeField] private GameManager gameManager;
 
+    [SerializeField] private GameManager gameManager;
     [SerializeField] private PhotonView photonView;
     [SerializeField] private Camera _camera;
+
+    private float mouseX, mouseY;
+    private float xRotation;
+
 
     private void Start()
     {

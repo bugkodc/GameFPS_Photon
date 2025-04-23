@@ -4,11 +4,13 @@ using UnityEngine;
 using UnityEngine.AI;
 using Photon.Pun;
 using Photon.Realtime;
+using UnityEngine.Rendering;
+using System.Linq;
 
 public class ZombieController : MonoBehaviourPunCallbacks
 {
     public GameObject playerTarget;
-    public GameObject[] playerTargets;
+    public List<GameObject> playerTargets;
     Vector3 target;
     float distanceToPlayer;
     NavMeshAgent navMeshAgent;
@@ -53,7 +55,7 @@ public class ZombieController : MonoBehaviourPunCallbacks
     {
         zombieManager = gameObject.GetComponent<ZombieManager>();
         if (PhotonNetwork.InRoom)
-            playerTargets = GameObject.FindGameObjectsWithTag("Player");
+            playerTargets = GameObject.FindGameObjectsWithTag("Player").ToList();
         else
             playerTarget = GameObject.FindGameObjectWithTag("Player");
 
@@ -76,7 +78,7 @@ public class ZombieController : MonoBehaviourPunCallbacks
             float minDistanceToPlayer = float.MaxValue;
             foreach (GameObject player in playerTargets)
             {
-                if (player != null)
+                if (player != null && player.GetComponent<PlayerManager>().isAlive)
                 {
                     float distance = Vector3.Distance(transform.position, player.transform.position);
                     if (distance < minDistanceToPlayer)
@@ -169,6 +171,17 @@ public class ZombieController : MonoBehaviourPunCallbacks
     }
     public override void OnPlayerLeftRoom(Player otherPlayer)
     {
-        playerTargets = GameObject.FindGameObjectsWithTag("Player");
+        playerTargets = GameObject.FindGameObjectsWithTag("Player").ToList();
+    }
+    public void RemovePlayer( GameObject playercurrent)
+    {
+        foreach (var player in playerTargets)
+        {
+           if(playercurrent == player)
+            {
+                playerTargets.Remove(player);
+            }
+        }
+        playerTarget = playerTargets[Random.Range(0, playerTargets.Count)];
     }
 }

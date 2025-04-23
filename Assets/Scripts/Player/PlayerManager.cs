@@ -7,7 +7,6 @@ using System.Linq;
 using Photon.Pun;
 using Unity.Mathematics;
 using Photon.Voice.Unity;
-using static UnityEditor.Recorder.OutputPath;
 
 public class PlayerManager : MonoBehaviour
 {
@@ -62,12 +61,10 @@ public class PlayerManager : MonoBehaviour
     }
     void Start()
     {
-        // Setup initial weapon (pistol)
         currentWeaponIndex = 0;
         currentWeapon = weaponHolder.transform.GetChild(currentWeaponIndex).GetComponent<WeaponController>();
         SetWeaponAvailable(WeaponType.pistol);
 
-        // Health & Points
         currentHealth = maximumHealth;
         healthSlider.value = 1f;
         isAlive = true;
@@ -79,8 +76,6 @@ public class PlayerManager : MonoBehaviour
         }
         recorder = GameObject.FindGameObjectWithTag("Recorder").GetComponent<Recorder>();
     }
-
-    // Update is called once per frame
     void Update()
     {
         if (takeDamageCG.alpha > 0)
@@ -98,7 +93,7 @@ public class PlayerManager : MonoBehaviour
             CheckMouseWheelInput();
         }
 
-        //If we are in range of a vending machine check input to open or close it
+
         if (vendingMachine != null)
         {
             if (Input.GetKeyDown(KeyCode.E) && !vendingMachine.isShopOpen)
@@ -162,11 +157,10 @@ public class PlayerManager : MonoBehaviour
         }
         if (!hasAlivePlayer)
         {
-            if (PhotonNetwork.InRoom)
+            foreach (PlayerManager player in players)
             {
-                photonView.RPC("GameOverRPC", RpcTarget.All);
+                player.GameOverRPC();
             }
-            GameOverRPC();
         }
         OffComponent();
 
@@ -177,10 +171,9 @@ public class PlayerManager : MonoBehaviour
         capsule.SetActive(false);
         Root.SetActive(false);
         gameObject.GetComponent<CharacterMovement>().enabled = false;
-        ZombieController[] Zombies = FindAnyObjectByType<ZombieController>;
     }
     [PunRPC]
-    void GameOverRPC()
+    public void GameOverRPC()
     {
         gameManager.GameOver();
     }
@@ -228,7 +221,7 @@ public class PlayerManager : MonoBehaviour
 
     public void ChangeWeapon(int weaponsAvailableIndex)
     {
-        Debug.Log(currentWeapon + " Current weapon on change weapon");
+       // Debug.Log(currentWeapon + " Current weapon on change weapon");
         if (currentWeapon.isReloading)
             currentWeapon.CancelReload();
 
@@ -255,7 +248,7 @@ public class PlayerManager : MonoBehaviour
 
     void AddWeaponIndexToAvailable(int indexPosition)
     {
-        Debug.Log("Index position addweaponindextoavailable: " + indexPosition);
+       // Debug.Log("Index position addweaponindextoavailable: " + indexPosition);
         if (!weaponsAvailableIndexes.Contains(indexPosition))
             weaponsAvailableIndexes.Add(indexPosition);
     }

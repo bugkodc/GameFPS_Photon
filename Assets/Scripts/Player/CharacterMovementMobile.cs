@@ -34,13 +34,11 @@ public class CharacterMovementMobile : MonoBehaviour
     Vector3 direction;
     private PlayerManager playerManager;
     [SerializeField] PhotonView photonView;
-    // Start is called before the first frame update
     void Start()
     {
         playerManager = GetComponent<PlayerManager>();
     }
 
-    // Update is called once per frame
     void Update()
     {
         if (PhotonNetwork.InRoom && !photonView.IsMine)
@@ -48,7 +46,6 @@ public class CharacterMovementMobile : MonoBehaviour
             return;
         }
         isGrounded = Physics.CheckSphere(isGroundedGO.position, checkGroundRadius, groundLayer);
-        // Lấy đầu vào từ joystick
         direction = transform.right * variableJoystick.Horizontal + transform.forward * variableJoystick.Vertical;
 
         if (playerManager.isAlive)
@@ -88,7 +85,6 @@ public class CharacterMovementMobile : MonoBehaviour
                     playerBody.Rotate(Vector3.up * mouseX);
                     verticalRotation -= mouseY;
                     verticalRotation = Mathf.Clamp(verticalRotation, -verticalClampAngle, verticalClampAngle);
-                    // Xoay nhân vật theo trục Y
                     playerBody.localRotation = Quaternion.Euler(verticalRotation, playerBody.localRotation.eulerAngles.y, 0f);
                 }
                 else if (touch.phase == TouchPhase.Ended)
