@@ -60,10 +60,22 @@ public class GameManager : MonoBehaviourPunCallbacks
         isOnlineMasterAndMine = PhotonNetwork.InRoom && _photonView.IsMine && PhotonNetwork.IsMasterClient;
         if (!PhotonNetwork.InRoom || isOnlineMasterAndMine)
         {
-            
+
             StartCoroutine(StartNextRound());
         }
+        if (!photonView.IsMine && PhotonNetwork.InRoom)
+        {
+            GameObject[] uiMobis = GameObject.FindGameObjectsWithTag("UIMobi");
 
+            foreach (GameObject go in uiMobis)
+            {
+                PhotonView pv = go.GetComponentInParent<PhotonView>();
+                if (pv != null && !pv.IsMine)
+                {
+                    go.SetActive(false);
+                }
+            }
+        }
     }
     void Update()
     {
@@ -123,9 +135,9 @@ public class GameManager : MonoBehaviourPunCallbacks
         {
             for (int i = 0; i < currentRound; i++)
             {
-               // Debug.Log("i = " + i);
+                // Debug.Log("i = " + i);
                 int randomSpawnIndex = Random.Range(0, spawners.Length);
-               // Debug.Log(randomSpawnIndex + " RandomSpawnIndex " + spawners.Length);
+                // Debug.Log(randomSpawnIndex + " RandomSpawnIndex " + spawners.Length);
                 if (PhotonNetwork.InRoom)
                     InstantiateZombie(true, randomSpawnIndex);
                 else
@@ -157,7 +169,7 @@ public class GameManager : MonoBehaviourPunCallbacks
                 enemy.GetComponent<ZombieManager>().gameManager = this;
         }
     }
-    public void InstantiateZombieEnenmy(bool isOnline, int spawnIndex , GameObject[] spawners)
+    public void InstantiateZombieEnenmy(bool isOnline, int spawnIndex, GameObject[] spawners)
     {
         if (isOnline)
         {
@@ -178,12 +190,12 @@ public class GameManager : MonoBehaviourPunCallbacks
     {
         if (isOnline)
         {
-            GameObject onlineEnemy = PhotonNetwork.Instantiate("Boss", spawnersBoss[spawnIndex].transform.position,          
+            GameObject onlineEnemy = PhotonNetwork.Instantiate("Boss", spawnersBoss[spawnIndex].transform.position,
             Quaternion.identity);
             if (onlineEnemy != null)
                 onlineEnemy.GetComponent<ZombieManager>().gameManager = this;
             onlineEnemy.GetComponent<ZombieManager>().maxHealth = 1000 * numberSpawnBoss;
-            
+
         }
         else
         {
@@ -208,8 +220,8 @@ public class GameManager : MonoBehaviourPunCallbacks
 
         if (!areEnemiesAlive)
         {
-           // Debug.Log("No more enemies alive " + isOnlineMasterAndMine + "inRoom: " + PhotonNetwork.InRoom
-           // + " isMaster: " + PhotonNetwork.IsMasterClient + " isMine " + photonView.IsMine);
+            // Debug.Log("No more enemies alive " + isOnlineMasterAndMine + "inRoom: " + PhotonNetwork.InRoom
+            // + " isMaster: " + PhotonNetwork.IsMasterClient + " isMine " + photonView.IsMine);
             if (!PhotonNetwork.InRoom || (isOnlineMasterAndMine))
                 StartCoroutine(StartNextRound());
         }
@@ -275,7 +287,7 @@ public class GameManager : MonoBehaviourPunCallbacks
         }
         //PhotonNetwork.LeaveRoom();
         currentLocalGameState = GameState.menu;
-        SceneManager.LoadScene(menuScene);    
+        SceneManager.LoadScene(menuScene);
     }
     void Pause()
     {
@@ -320,23 +332,23 @@ public class GameManager : MonoBehaviourPunCallbacks
     }
     public override void OnPlayerLeftRoom(Player otherPlayer)
     {
-        if (otherPlayer.IsLocal) 
+        if (otherPlayer.IsLocal)
         {
             if (PhotonNetwork.CurrentRoom.PlayerCount > 1)
             {
-                GameObject playerObject = GameObject.FindWithTag("Player"); 
+                GameObject playerObject = GameObject.FindWithTag("Player");
                 if (playerObject != null)
                 {
                     PhotonView playerPhotonView = playerObject.GetComponent<PhotonView>();
                     if (playerPhotonView != null && playerPhotonView.IsMine)
                     {
-                        PhotonNetwork.Destroy(playerObject); 
+                        PhotonNetwork.Destroy(playerObject);
                     }
                 }
             }
             else
             {
-              //  Debug.Log("Phòng trống, chỉ rời phòng mà không xóa Player.");
+                //  Debug.Log("Phòng trống, chỉ rời phòng mà không xóa Player.");
             }
         }
     }

@@ -17,6 +17,7 @@ public class PlayerManager : MonoBehaviour
     [SerializeField] private TextMeshProUGUI namePlayer;
     [SerializeField] private Slider healthSlider;
     [SerializeField] private CanvasGroup takeDamageCG;
+    [SerializeField] private GameObject uiGamemobi;
 
     [Header("Health Settings")]
     public float currentHealth = 100;
@@ -170,7 +171,17 @@ public class PlayerManager : MonoBehaviour
         bob.SetActive(false);
         capsule.SetActive(false);
         Root.SetActive(false);
-        gameObject.GetComponent<CharacterMovement>().enabled = false;
+        if (gameManager.isMobi)
+        {
+            gameObject.GetComponent<CharacterMovementMobile>().enabled = false;
+            uiGamemobi.SetActive(false);
+
+        }
+        else
+        {
+
+            gameObject.GetComponent<CharacterMovement>().enabled = false;
+        }
     }
     [PunRPC]
     public void GameOverRPC()
@@ -221,7 +232,7 @@ public class PlayerManager : MonoBehaviour
 
     public void ChangeWeapon(int weaponsAvailableIndex)
     {
-       // Debug.Log(currentWeapon + " Current weapon on change weapon");
+        // Debug.Log(currentWeapon + " Current weapon on change weapon");
         if (currentWeapon.isReloading)
             currentWeapon.CancelReload();
 
@@ -248,7 +259,7 @@ public class PlayerManager : MonoBehaviour
 
     void AddWeaponIndexToAvailable(int indexPosition)
     {
-       // Debug.Log("Index position addweaponindextoavailable: " + indexPosition);
+        // Debug.Log("Index position addweaponindextoavailable: " + indexPosition);
         if (!weaponsAvailableIndexes.Contains(indexPosition))
             weaponsAvailableIndexes.Add(indexPosition);
     }

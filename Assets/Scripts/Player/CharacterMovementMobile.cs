@@ -5,11 +5,10 @@ using UnityEngine;
 
 public class CharacterMovementMobile : MonoBehaviour
 {
-
     [Header("Movement")]
     public CharacterController characterController;
     public VariableJoystick variableJoystick;
-    public float speed = 12f;
+    public float speed = 6f;
 
     [Header("Jump & Gravity")]
     public float gravity = -9.81f;
@@ -25,7 +24,7 @@ public class CharacterMovementMobile : MonoBehaviour
     [Header("Camera Rotation")]
     public Transform playerBody;
     public Transform cameraTransform;
-    public float sensitivity = 100f;
+    public float sensitivity = 2f;
     public float verticalClampAngle = 60f;
     private Vector2 lastTouchPosition;
     private float verticalRotation = 0f;
@@ -34,6 +33,7 @@ public class CharacterMovementMobile : MonoBehaviour
     Vector3 direction;
     private PlayerManager playerManager;
     [SerializeField] PhotonView photonView;
+
     void Start()
     {
         playerManager = GetComponent<PlayerManager>();
@@ -45,31 +45,52 @@ public class CharacterMovementMobile : MonoBehaviour
         {
             return;
         }
+
         isGrounded = Physics.CheckSphere(isGroundedGO.position, checkGroundRadius, groundLayer);
-        direction = transform.right * variableJoystick.Horizontal + transform.forward * variableJoystick.Vertical;
+        Vector3 moveInput = new Vector3(variableJoystick.Horizontal, 0, variableJoystick.Vertical);
+        Vector3 camForward = cameraTransform.forward;
+        Vector3 camRight = cameraTransform.right;
+        camForward.y = 0f;
+        camRight.y = 0f;
+        camForward.Normalize();
+        camRight.Normalize();
+
+        direction = camForward * moveInput.z + camRight * moveInput.x;
 
         if (playerManager.isAlive)
         {
             SimulateGravity();
             characterController.Move(direction * Time.deltaTime * speed);
         }
-        yVelocity.y += gravity * Time.deltaTime;
+
         characterController.Move(yVelocity * Time.deltaTime);
+
         HandleCameraRotation();
     }
+
     public void Jump()
     {
-
         if (isGrounded)
         {
             yVelocity.y = Mathf.Sqrt(jumpHeight * -2 * gravity);
         }
     }
+
+    private void SimulateGravity()
+    {
+        if (isGrounded && yVelocity.y < 0)
+        {
+            yVelocity.y = -2f;
+        }
+
+        yVelocity.y += gravity * Time.deltaTime;
+    }
+
     private void HandleCameraRotation()
     {
         if (Input.touchCount > 0)
         {
-            Touch touch = Input.GetTouch(0); 
+            Touch touch = Input.GetTouch(0);
             if (touch.position.x > Screen.width / 2)
             {
                 if (touch.phase == TouchPhase.Began)
@@ -80,28 +101,23 @@ public class CharacterMovementMobile : MonoBehaviour
                 else if (touch.phase == TouchPhase.Moved && isDragging)
                 {
                     Vector2 delta = touch.deltaPosition;
-                    float mouseX = delta.x * sensitivity * Time.deltaTime;
-                    float mouseY = delta.y * sensitivity * Time.deltaTime;
+                    float touchSensitivity = sensitivity;
+
+                    float mouseX = delta.x * touchSensitivity * Time.deltaTime;
+                    float mouseY = delta.y * touchSensitivity * Time.deltaTime;
+
                     playerBody.Rotate(Vector3.up * mouseX);
+
+                    // Xoay dọc - camera
                     verticalRotation -= mouseY;
                     verticalRotation = Mathf.Clamp(verticalRotation, -verticalClampAngle, verticalClampAngle);
-                    playerBody.localRotation = Quaternion.Euler(verticalRotation, playerBody.localRotation.eulerAngles.y, 0f);
+                    cameraTransform.localRotation = Quaternion.Euler(verticalRotation, 0f, 0f);
                 }
-                else if (touch.phase == TouchPhase.Ended)
+                else if (touch.phase == TouchPhase.Ended || touch.phase == TouchPhase.Canceled)
                 {
                     isDragging = false;
                 }
             }
         }
     }
-    void SimulateGravity()
-    {
-        if (isGrounded && yVelocity.y < 0)
-        {
-            
-            yVelocity.y = -2;
-        }
-        yVelocity.y += gravity * Time.deltaTime;
-    }
 }
-
